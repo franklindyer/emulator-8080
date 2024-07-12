@@ -40,12 +40,21 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         case 0xde: printf("SBI\t0x%02x", instr[1]); len = 2;                    break;
  
         // Logical group
+        case 0x07: printf("RLC");                                               break;
+        case 0x0f: printf("RRC");                                               break;
+        case 0x17: printf("RAL");                                               break;
+        case 0x1f: printf("RAR");                                               break;
+        case 0x2f: printf("CMA");                                               break;
+        case 0x37: printf("STC");                                               break;
+        case 0x3f: printf("CMC");                                               break;
         case 0xa6: printf("ANA\tM");                                            break;
         case 0xae: printf("XRA\tM");                                            break;
         case 0xb6: printf("ORA\tM");                                            break;
+        case 0xbe: printf("CMP\tM");                                            break;
         case 0xe6: printf("ANI\t0x%02x", instr[1]); len = 2;                    break;
         case 0xee: printf("XRI\t0x%02x", instr[1]); len = 2;                    break;
         case 0xf6: printf("ORI\t0x%02x", instr[1]); len = 2;                    break;
+        case 0xfe: printf("CPI\t0x%02x", instr[1]); len = 2;                    break;
 
         case 0x00: printf("NOP");                                               break;
         case 0xf3: printf("DI");                                                break;
@@ -78,6 +87,7 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         else if ((c & 0xf8) == 0xa0) printf("ANA\t%c", REG(c & 0x7));
         else if ((c & 0xf8) == 0xa8) printf("XRA\t%c", REG(c & 0x7));
         else if ((c & 0xf8) == 0xb0) printf("ORA\t%c", REG(c & 0x7));
+        else if ((c & 0xf8) == 0xb8) printf("CMP\t%c", REG(c & 0x7));
 
         else printf("UNKNOWN");
     }
