@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #define REG(n) (((n)==0x7) ? 'A' : (((n)==0x4) ? 'H' : (((n)==0x5) ? 'L' : (n)+'B')))
+#define REGPAIR(n) (((n)==0x0) ? "BC" : (((n)==0x1) ? "DE" : (((n)==0x2) ? "HL" : "SP")))
 
 /*
     Expects codebuf to point to 8080 instructions
@@ -13,16 +14,27 @@
 int disassemble8080(unsigned char *codebuf, int pc) {
     unsigned char *instr = &codebuf[pc];
     unsigned char c = instr[0];
-    int instr_bytes = 1;
+    int len = 1;
     printf("%04x ", pc);
 
-    if      ((c & 0xf8) == 0x70) printf("MOV\tM\t%c", REG(c & 0x7));
-    else if ((c & 0xc7) == 0x46) printf("MOV\t%c\tM", REG((c >> 3) & 0x7));
-    else if ((c & 0xc0) == 0x80) printf("MOV\t%c\t%c", REG((c >> 3) & 0x7), REG(c & 0x7));
-    else printf("UNKNOWN");
+    switch(c) {
+        case 0x00: printf("NOP"); break;
+        case 0x36: printf("MVI\tM\t0x%02x", instr[1]); len = 2; break;
+        case 0xf3: printf("DI"); break;
+        case 0xfb: printf("EI"); break;
+        default:
+        if      ((c & 0xf8) == 0x70) printf("MOV\tM\t%c", REG(c & 0x7));
+        else if ((c & 0xc7) == 0x46) printf("MOV\t%c\tM", REG((c >> 3) & 0x7));
+        else if ((c & 0xc0) == 0x80) printf("MOV\t%c\t%c", REG((c >> 3) & 0x7), REG(c & 0x7));
+        else if ((c & 0xc7) == 0x06) 
+            { printf("MVI\t%c\t0x%02x", REG((c >> 3) & 0x7), instr[1]); len = 3; }
+        else if ((c & 0xcf) == 0x01) 
+            { printf("LXI\t%s\t0x%02x%02x", REGPAIR((c >> 4) & 0x3), instr[2], instr[1]); len = 3; }
+        else printf("UNKNOWN");
+    }
 
     printf("\n");
-    return instr_bytes;
+    return len;
 }
 
 int main(int argc, char **argv) {
