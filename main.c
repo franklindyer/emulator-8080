@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h>
 
+#include "screen_drawing.c"
+
 int main() {
     SDL_Window * window = NULL;
 
@@ -12,8 +14,11 @@ int main() {
 
     window_surface = SDL_GetWindowSurface(window);
     image_surface = SDL_LoadBMP("./data/grumpy-cat.bmp");
-    SDL_Rect rect = {0,0,100,100};
-    SDL_FillRect(image_surface, &rect, SDL_MapRGB(image_surface->format, 0x00, 0x00, 0x00));
+    SDL_Rect rect = {0,0,10,10};
+    char c[5] = {'0', '1', '2', '3', '4'};
+    draw_pixel_row(image_surface, c, 8, 0);
+    draw_pixel_row(image_surface, 1+c, 8, 1);
+    draw_pixel_row(image_surface, 2+c, 8, 2);
 
     SDL_BlitSurface(image_surface, NULL, window_surface, NULL);
 
