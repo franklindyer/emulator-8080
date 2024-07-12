@@ -27,6 +27,9 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         case 0xeb: printf("XCHG");                                              break;
        
         // Arithmetic group
+        case 0x27: printf("DAA");                                               break;
+        case 0x34: printf("INR\tM");                                            break;
+        case 0x35: printf("DCR\tM");                                            break;
         case 0x86: printf("ADD\tM");                                            break;
         case 0x8e: printf("ADC\tM");                                            break;
         case 0x96: printf("SUB\tM");                                            break;
@@ -36,6 +39,7 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         case 0xd6: printf("SUI\t0x%02x", instr[1]); len = 2;                    break;
         case 0xde: printf("SBI\t0x%02x", instr[1]); len = 2;                    break;
  
+
         case 0x00: printf("NOP");                                               break;
         case 0xf3: printf("DI");                                                break;
         case 0xfb: printf("EI");                                                break;
@@ -57,6 +61,11 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         else if ((c & 0xf8) == 0x88) printf("ADC\t%c", REG(c & 0x7));
         else if ((c & 0xf8) == 0x90) printf("SUB\t%c", REG(c & 0x7));
         else if ((c & 0xf8) == 0x98) printf("SBB\t%c", REG(c & 0x7));
+        else if ((c & 0xc7) == 0x04) printf("INR\t%c", REG((c >> 3) & 0x7));
+        else if ((c & 0xc7) == 0x05) printf("DCR\t%c", REG((c >> 3) & 0x7));
+        else if ((c & 0xcf) == 0x03) printf("INX\t%s", REGPAIR((c >> 4) & 0x3));
+        else if ((c & 0xcf) == 0x0b) printf("DCX\t%s", REGPAIR((c >> 4) & 0x3));
+        else if ((c & 0xcf) == 0x09) printf("DAD\t%s", REGPAIR((c >> 4) & 0x3));
 
         else printf("UNKNOWN");
     }
