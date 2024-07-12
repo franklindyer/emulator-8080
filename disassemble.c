@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define REG(n) (((n)==0x7) ? 'A' : (((n)==0x4) ? 'H' : (((n)==0x5) ? 'L' : (n)+'B')))
+
 /*
     Expects codebuf to point to 8080 instructions
     Reads instruction starting at location pc
@@ -10,10 +12,14 @@
 */
 int disassemble8080(unsigned char *codebuf, int pc) {
     unsigned char *instr = &codebuf[pc];
+    unsigned char c = instr[0];
     int instr_bytes = 1;
     printf("%04x ", pc);
 
-    printf("UNKNOWN");
+    if      ((c & 0xf8) == 0x70) printf("MOV\tM\t%c", REG(c & 0x7));
+    else if ((c & 0xc7) == 0x46) printf("MOV\t%c\tM", REG((c >> 3) & 0x7));
+    else if ((c & 0xc0) == 0x80) printf("MOV\t%c\t%c", REG((c >> 3) & 0x7), REG(c & 0x7));
+    else printf("UNKNOWN");
 
     printf("\n");
     return instr_bytes;
