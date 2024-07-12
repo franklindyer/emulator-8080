@@ -16,9 +16,7 @@ int main() {
     image_surface = SDL_LoadBMP("./data/grumpy-cat.bmp");
     SDL_Rect rect = {0,0,10,10};
     char c[5] = {'0', '1', '2', '3', '4'};
-    draw_pixel_row(image_surface, c, 8, 0);
-    draw_pixel_row(image_surface, 1+c, 8, 1);
-    draw_pixel_row(image_surface, 2+c, 8, 2);
+    draw_pixel_row(image_surface, c, 40, 0);
 
     SDL_BlitSurface(image_surface, NULL, window_surface, NULL);
 
