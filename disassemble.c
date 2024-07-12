@@ -39,6 +39,13 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         case 0xd6: printf("SUI\t0x%02x", instr[1]); len = 2;                    break;
         case 0xde: printf("SBI\t0x%02x", instr[1]); len = 2;                    break;
  
+        // Logical group
+        case 0xa6: printf("ANA\tM");                                            break;
+        case 0xae: printf("XRA\tM");                                            break;
+        case 0xb6: printf("ORA\tM");                                            break;
+        case 0xe6: printf("ANI\t0x%02x", instr[1]); len = 2;                    break;
+        case 0xee: printf("XRI\t0x%02x", instr[1]); len = 2;                    break;
+        case 0xf6: printf("ORI\t0x%02x", instr[1]); len = 2;                    break;
 
         case 0x00: printf("NOP");                                               break;
         case 0xf3: printf("DI");                                                break;
@@ -56,7 +63,7 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         else if ((c & 0xcf) == 0x0a) printf("LDAX\t%s", REGPAIR((c >> 4) & 0x3));
         else if ((c & 0xcf) == 0x02) printf("STAX\t%s", REGPAIR((c >> 4) & 0x3));
 
-        //Arithmetic group, cont'd
+        // Arithmetic group, cont'd
         else if ((c & 0xf8) == 0x80) printf("ADD\t%c", REG(c & 0x7));
         else if ((c & 0xf8) == 0x88) printf("ADC\t%c", REG(c & 0x7));
         else if ((c & 0xf8) == 0x90) printf("SUB\t%c", REG(c & 0x7));
@@ -66,6 +73,11 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         else if ((c & 0xcf) == 0x03) printf("INX\t%s", REGPAIR((c >> 4) & 0x3));
         else if ((c & 0xcf) == 0x0b) printf("DCX\t%s", REGPAIR((c >> 4) & 0x3));
         else if ((c & 0xcf) == 0x09) printf("DAD\t%s", REGPAIR((c >> 4) & 0x3));
+
+        // Logical group, cont'd
+        else if ((c & 0xf8) == 0xa0) printf("ANA\t%c", REG(c & 0x7));
+        else if ((c & 0xf8) == 0xa8) printf("XRA\t%c", REG(c & 0x7));
+        else if ((c & 0xf8) == 0xb0) printf("ORA\t%c", REG(c & 0x7));
 
         else printf("UNKNOWN");
     }
