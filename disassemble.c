@@ -27,10 +27,14 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         case 0xeb: printf("XCHG");                                              break;
        
         // Arithmetic group
-        case 0x86: printf("ADD M");                                             break;
-        case 0x8e: printf("ADC M");                                             break;
+        case 0x86: printf("ADD\tM");                                            break;
+        case 0x8e: printf("ADC\tM");                                            break;
+        case 0x96: printf("SUB\tM");                                            break;
+        case 0x9d: printf("SBB\tM");                                            break;
         case 0xc6: printf("ADI\t0x%02x", instr[1]); len = 2;                    break;
         case 0xce: printf("ADC\t0x%02x", instr[1]); len = 2;                    break;
+        case 0xd6: printf("SUI\t0x%02x", instr[1]); len = 2;                    break;
+        case 0xde: printf("SBI\t0x%02x", instr[1]); len = 2;                    break;
  
         case 0x00: printf("NOP");                                               break;
         case 0xf3: printf("DI");                                                break;
@@ -51,6 +55,8 @@ int disassemble8080(unsigned char *codebuf, int pc) {
         //Arithmetic group, cont'd
         else if ((c & 0xf8) == 0x80) printf("ADD\t%c", REG(c & 0x7));
         else if ((c & 0xf8) == 0x88) printf("ADC\t%c", REG(c & 0x7));
+        else if ((c & 0xf8) == 0x90) printf("SUB\t%c", REG(c & 0x7));
+        else if ((c & 0xf8) == 0x98) printf("SBB\t%c", REG(c & 0x7));
 
         else printf("UNKNOWN");
     }
