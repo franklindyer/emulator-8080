@@ -18,16 +18,26 @@ int disassemble8080(unsigned char *codebuf, int pc) {
     printf("%04x ", pc);
 
     switch(c) {
-        case 0x00: printf("NOP");                                               break;
+        // Data transfer group
         case 0x22: printf("SHLD\t0x%02x%02x", instr[2], instr[1]); len = 2;     break;
         case 0x2a: printf("LHLD\t0x%02x%02x", instr[2], instr[1]); len = 2;     break;
         case 0x32: printf("STA\t0x%02x%02x", instr[2], instr[1]); len = 2;      break;
         case 0x36: printf("MVI\tM\t0x%02x", instr[1]); len = 2;                 break;
         case 0x3a: printf("LDA\t0x%02x%02x", instr[2], instr[1]); len = 2;      break;
         case 0xeb: printf("XCHG");                                              break;
+       
+        // Arithmetic group
+        case 0x86: printf("ADD M");                                             break;
+        case 0x8e: printf("ADC M");                                             break;
+        case 0xc6: printf("ADI\t0x%02x", instr[1]); len = 2;                    break;
+        case 0xce: printf("ADC\t0x%02x", instr[1]); len = 2;                    break;
+ 
+        case 0x00: printf("NOP");                                               break;
         case 0xf3: printf("DI");                                                break;
         case 0xfb: printf("EI");                                                break;
         default:
+
+        // Data transfer group, cont'd
         if      ((c & 0xf8) == 0x70) printf("MOV\tM\t%c", REG(c & 0x7));
         else if ((c & 0xc7) == 0x46) printf("MOV\t%c\tM", REG((c >> 3) & 0x7));
         else if ((c & 0xc0) == 0x80) printf("MOV\t%c\t%c", REG((c >> 3) & 0x7), REG(c & 0x7));
@@ -37,6 +47,11 @@ int disassemble8080(unsigned char *codebuf, int pc) {
             { printf("LXI\t%s\t0x%02x%02x", REGPAIR((c >> 4) & 0x3), instr[2], instr[1]); len = 3; }
         else if ((c & 0xcf) == 0x0a) printf("LDAX\t%s", REGPAIR((c >> 4) & 0x3));
         else if ((c & 0xcf) == 0x02) printf("STAX\t%s", REGPAIR((c >> 4) & 0x3));
+
+        //Arithmetic group, cont'd
+        else if ((c & 0xf8) == 0x80) printf("ADD\t%c", REG(c & 0x7));
+        else if ((c & 0xf8) == 0x88) printf("ADC\t%c", REG(c & 0x7));
+
         else printf("UNKNOWN");
     }
 
