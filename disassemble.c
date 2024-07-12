@@ -18,10 +18,15 @@ int disassemble8080(unsigned char *codebuf, int pc) {
     printf("%04x ", pc);
 
     switch(c) {
-        case 0x00: printf("NOP"); break;
-        case 0x36: printf("MVI\tM\t0x%02x", instr[1]); len = 2; break;
-        case 0xf3: printf("DI"); break;
-        case 0xfb: printf("EI"); break;
+        case 0x00: printf("NOP");                                               break;
+        case 0x22: printf("SHLD\t0x%02x%02x", instr[2], instr[1]); len = 2;     break;
+        case 0x2a: printf("LHLD\t0x%02x%02x", instr[2], instr[1]); len = 2;     break;
+        case 0x32: printf("STA\t0x%02x%02x", instr[2], instr[1]); len = 2;      break;
+        case 0x36: printf("MVI\tM\t0x%02x", instr[1]); len = 2;                 break;
+        case 0x3a: printf("LDA\t0x%02x%02x", instr[2], instr[1]); len = 2;      break;
+        case 0xeb: printf("XCHG");                                              break;
+        case 0xf3: printf("DI");                                                break;
+        case 0xfb: printf("EI");                                                break;
         default:
         if      ((c & 0xf8) == 0x70) printf("MOV\tM\t%c", REG(c & 0x7));
         else if ((c & 0xc7) == 0x46) printf("MOV\t%c\tM", REG((c >> 3) & 0x7));
@@ -30,6 +35,8 @@ int disassemble8080(unsigned char *codebuf, int pc) {
             { printf("MVI\t%c\t0x%02x", REG((c >> 3) & 0x7), instr[1]); len = 3; }
         else if ((c & 0xcf) == 0x01) 
             { printf("LXI\t%s\t0x%02x%02x", REGPAIR((c >> 4) & 0x3), instr[2], instr[1]); len = 3; }
+        else if ((c & 0xcf) == 0x0a) printf("LDAX\t%s", REGPAIR((c >> 4) & 0x3));
+        else if ((c & 0xcf) == 0x02) printf("STAX\t%s", REGPAIR((c >> 4) & 0x3));
         else printf("UNKNOWN");
     }
 
