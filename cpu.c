@@ -24,7 +24,129 @@ typedef struct cpu8080 {
     uint8_t* memory;
 } cpu8080;
 
-void unimplemented_op(cpu8080* cpu) {
-    perror("Unimplemented operation\n");
+void print_cpu_state(cpu8080* cpu) {
+    printf("REGISTERS:\n");
+    printf("\tA\t0x%02x\n", cpu->a);
+    printf("\tB\t0x%02x\n", cpu->b);
+    printf("\tC\t0x%02x\n", cpu->c);
+    printf("\tD\t0x%02x\n", cpu->d);
+    printf("\tE\t0x%02x\n", cpu->e);
+    printf("\tH\t0x%02x\n", cpu->h);
+    printf("\tL\t0x%02x\n", cpu->l);
+    printf("\tPC\t0x%04x\n", cpu->pc);
+    printf("\tSP\t0x%04x\n", cpu->sp);
+    printf("FLAGS: ");
+    if ((cpu->flags).z) printf("zero ");
+    if ((cpu->flags).s) printf("sign ");
+    if ((cpu->flags).p) printf("parity ");
+    if ((cpu->flags).c) printf("carry ");
+    if ((cpu->flags).ac) printf("auxcarry ");
+    printf("\n");
+}
+
+void unimplemented_op(cpu8080* cpu, unsigned char opcode) {
+    printf("Unimplemented operation: 0x%02x\nCPU STATE:\n", opcode);
+    print_cpu_state(cpu);
     exit(1);
+}
+
+void emulate_cpu8080(cpu8080* cpu, long bound) {
+    unsigned char *op;
+    unsigned char *mem = cpu->memory;
+    uint16_t pc;
+    uint16_t aux;
+    while (bound > 0) {
+        bound--;
+        pc = cpu->pc;
+        op = &cpu->memory[cpu->pc];
+        printf("Doing operation 0x%02x\n", *op);
+        cpu->pc++;
+        switch(*op) {
+
+            case 0x00: // NOP
+                break;
+
+            case 0x06: // MVI B D8
+                cpu->b = mem[pc+1];
+                cpu->pc += 1;
+                break;
+
+            case 0x11: // LXI DE D16
+                cpu->d = mem[pc+2];
+                cpu->e = mem[pc+1];
+                cpu->pc += 2;
+                break;
+
+            case 0x1a: // LDAX DE
+                aux = (cpu->d << 8) + cpu->e;
+                cpu->a = mem[aux];
+                break;
+
+            case 0x21: // LXI HL D16
+                cpu->h = mem[pc+2];
+                cpu->l = mem[pc+1];
+                cpu->pc += 2;
+                break;
+
+            case 0x31: // LXI SP D16
+                cpu->sp = (mem[pc+2] << 8) + mem[pc+1];
+                cpu->pc += 2;
+                break;
+
+            case 0x56: // MOV D M
+                aux = (cpu->h << 8) + cpu->l;
+                cpu->d = mem[aux];
+                break;
+
+            case 0x5e: // MOV E M
+                aux = (cpu->h << 8) + cpu->l;
+                cpu->e = mem[aux];
+                break;
+
+            case 0x66: // MOV H M
+                aux = (cpu->h << 8) + cpu->l;
+                cpu->h = mem[aux];
+                break;
+
+            case 0x6f: // MOV L A
+                cpu->l = cpu->a;
+                break;
+
+            case 0x77: // MOV M A
+                aux = (cpu->h << 8) + cpu->l;
+                mem[aux] = cpu->a;
+                break;
+
+            case 0x7a: // MOV A D
+                cpu->a = cpu->d;
+                break;
+
+            case 0x7b: // MOV A E
+                cpu->a = cpu->e;
+                break;
+
+            case 0x7c: // MOV A H
+                cpu->a = cpu->h;
+                break;
+
+            case 0x7e: // MOV A M
+                aux = (cpu->h << 8) + cpu->l;
+                cpu->a = mem[aux];
+                break;
+
+            case 0xc3: // JMP D16
+                cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                break;
+
+            case 0xcd: // CALL
+                mem[cpu->sp-1] = cpu->pc >> 8;
+                mem[cpu->sp-2] = cpu->pc & 255;
+                cpu->sp += -2;
+                cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                break;
+
+            default: unimplemented_op(cpu, *op);
+
+        }
+    }
 }

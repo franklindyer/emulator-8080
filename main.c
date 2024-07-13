@@ -1,8 +1,12 @@
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <SDL2/SDL.h>
 
+#include "cpu.c"
 #include "screen_drawing.c"
 
-int main() {
+int screen_test() {
     SDL_Window * window = NULL;
 
     SDL_Surface * window_surface = NULL;
@@ -38,4 +42,24 @@ int main() {
     SDL_DestroyWindow(window);
     SDL_FreeSurface(image_surface);
     SDL_Quit();
+
+    return 0;
+}
+
+void run_invaders() {
+    unsigned char* mainmem = malloc(1 << 16);
+    cpu8080 cpu = {};
+    cpu.memory = mainmem;
+
+    int fd = open("./data/invaders", O_RDONLY);
+    int size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+    read(fd, mainmem, size);
+    
+    emulate_cpu8080(&cpu, 1000);
+}
+
+int main() {
+    run_invaders();
+    return 0;
 }
