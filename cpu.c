@@ -77,6 +77,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x13: // INX DE
+                aux = (cpu->d << 8) + cpu->e;
+                aux++;
+                cpu->d = aux >> 8;
+                cpu->e = aux & 255;
+                break;
+
             case 0x1a: // LDAX DE
                 aux = (cpu->d << 8) + cpu->e;
                 cpu->a = mem[aux];
@@ -86,6 +93,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = mem[pc+2];
                 cpu->l = mem[pc+1];
                 cpu->pc += 2;
+                break;
+
+            case 0x23: // INX HL
+                aux = (cpu->h << 8) + cpu->l;
+                aux++;
+                cpu->h = aux >> 8;
+                cpu->l = aux & 255;
                 break;
 
             case 0x31: // LXI SP D16
