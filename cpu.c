@@ -1,5 +1,14 @@
 #include <stdio.h>
 
+
+#define DCR(cpu,r) \
+    r += -1; \
+    if (r == 0) (cpu->flags).z = 0; \
+    (cpu->flags).s = r >> 7; \
+    SETPARITY((cpu->flags).p, r) \
+    (cpu->flags).ac = (r & 0xf) == 0xf;
+#define SETPARITY(p,x) p=x; p=((p)>>4)^((p)&0xf); p=((p)>>2)^((p)&3); p=((p)>>1)^((p)&1);    
+
 typedef struct flags8080 {
     uint8_t z : 1;
     uint8_t s : 1;
@@ -66,9 +75,17 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x00: // NOP
                 break;
 
+            case 0x05: // DCR B
+                DCR(cpu,cpu->b)
+                break;
+
             case 0x06: // MVI B D8
                 cpu->b = mem[pc+1];
                 cpu->pc += 1;
+                break;
+
+            case 0x0d: // DCR C
+                DCR(cpu,cpu->c)
                 break;
 
             case 0x11: // LXI DE D16
@@ -84,9 +101,17 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->e = aux & 255;
                 break;
 
+            case 0x15: // DCR D
+                DCR(cpu,cpu->d)
+                break;
+
             case 0x1a: // LDAX DE
                 aux = (cpu->d << 8) + cpu->e;
                 cpu->a = mem[aux];
+                break;
+
+            case 0x1d: // DCR E
+                DCR(cpu,cpu->e)
                 break;
 
             case 0x21: // LXI HL D16
@@ -102,9 +127,26 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->l = aux & 255;
                 break;
 
+            case 0x25: // DCR H
+                DCR(cpu,cpu->h)
+                break;
+
+            case 0x2d: // DCR L
+                DCR(cpu,cpu->l)
+                break;
+
             case 0x31: // LXI SP D16
                 cpu->sp = (mem[pc+2] << 8) + mem[pc+1];
                 cpu->pc += 2;
+                break;
+
+            case 0x35: // DCR M
+                aux = (cpu->h << 8) + cpu->l;
+                DCR(cpu,mem[aux])
+                break;
+
+            case 0x3d: // DCR A
+                DCR(cpu,cpu->a)
                 break;
 
             case 0x56: // MOV D M
