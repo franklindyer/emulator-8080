@@ -94,6 +94,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 DCR(cpu,cpu->c)
                 break;
 
+            case 0x0e: // MVI C D8
+                cpu->c = mem[pc+1];
+                cpu->pc += 1;
+                break;
+
             case 0x11: // LXI DE D16
                 cpu->d = mem[pc+2];
                 cpu->e = mem[pc+1];
@@ -111,6 +116,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 DCR(cpu,cpu->d)
                 break;
 
+            case 0x16: // MVI D D8
+                cpu->d = mem[pc+1];
+                cpu->pc += 1;
+                break;
+
             case 0x1a: // LDAX DE
                 aux = (cpu->d << 8) + cpu->e;
                 cpu->a = mem[aux];
@@ -118,6 +128,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0x1d: // DCR E
                 DCR(cpu,cpu->e)
+                break;
+
+            case 0x1e: // MVI E D8
+                cpu->e = mem[pc+1];
+                cpu->pc += 1;
                 break;
 
             case 0x21: // LXI HL D16
@@ -137,8 +152,18 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 DCR(cpu,cpu->h)
                 break;
 
+            case 0x26: // MVI H D8
+                cpu->h = mem[pc+1];
+                cpu->pc += 1;
+                break;
+
             case 0x2d: // DCR L
                 DCR(cpu,cpu->l)
+                break;
+
+            case 0x2e: // MVI L D8
+                cpu->l = mem[pc+1];
+                cpu->pc += 1;
                 break;
 
             case 0x31: // LXI SP D16
@@ -159,6 +184,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0x3d: // DCR A
                 DCR(cpu,cpu->a)
+                break;
+
+            case 0x3e: // MVI A D8
+                cpu->a = mem[pc+1];
+                cpu->pc += 1;
                 break;
 
             case 0x56: // MOV D M
