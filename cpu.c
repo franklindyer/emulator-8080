@@ -69,7 +69,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
     unsigned char *op;
     unsigned char *mem = cpu->memory;
     uint16_t pc;
-    uint16_t aux;
+    uint16_t aux, aux2;
     while (bound > 0) {
         bound--;
         pc = cpu->pc;
@@ -90,6 +90,15 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0x09: // DAD BC
+                aux = (cpu->h << 8) | cpu->l;
+                aux2 = aux;
+                aux += (cpu->b << 8) | cpu->c;
+                cpu->h = aux >> 8;
+                cpu->l = aux & 0xff;
+                (cpu->flags).c = aux2 > aux;
+                break;
+
             case 0x0d: // DCR C
                 DCR(cpu,cpu->c)
                 break;
@@ -106,7 +115,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x13: // INX DE
-                aux = (cpu->d << 8) + cpu->e;
+                aux = (cpu->d << 8) | cpu->e;
                 aux++;
                 cpu->d = aux >> 8;
                 cpu->e = aux & 255;
@@ -122,7 +131,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x1a: // LDAX DE
-                aux = (cpu->d << 8) + cpu->e;
+                aux = (cpu->d << 8) | cpu->e;
                 cpu->a = mem[aux];
                 break;
 
@@ -135,6 +144,15 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0x19: // DAD DE
+                aux = (cpu->h << 8) | cpu->l;
+                aux2 = aux;
+                aux += (cpu->d << 8) | cpu->e;
+                cpu->h = aux >> 8;
+                cpu->l = aux & 0xff;
+                (cpu->flags).c = aux2 > aux;
+                break;
+
             case 0x21: // LXI HL D16
                 cpu->h = mem[pc+2];
                 cpu->l = mem[pc+1];
@@ -142,7 +160,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x23: // INX HL
-                aux = (cpu->h << 8) + cpu->l;
+                aux = (cpu->h << 8) | cpu->l;
                 aux++;
                 cpu->h = aux >> 8;
                 cpu->l = aux & 255;
@@ -155,6 +173,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x26: // MVI H D8
                 cpu->h = mem[pc+1];
                 cpu->pc += 1;
+                break;
+
+            case 0x29: // DAD HL
+                (cpu->flags).c = cpu->h >> 7;
+                cpu->h = (cpu->h << 1) | (cpu->l >> 7);
+                cpu->l = cpu->l << 1;
                 break;
 
             case 0x2d: // DCR L
@@ -172,14 +196,22 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x35: // DCR M
-                aux = (cpu->h << 8) + cpu->l;
+                aux = (cpu->h << 8) | cpu->l;
                 DCR(cpu,mem[aux])
                 break;
 
             case 0x36: // MVI M D8
-                aux = (cpu->h << 8) + cpu->l;
+                aux = (cpu->h << 8) | cpu->l;
                 mem[aux] = mem[pc+1];
                 cpu->pc++;
+                break;
+
+            case 0x39: // DAD SP
+                aux = (cpu->h << 8) | cpu->l;
+                aux += cpu->sp;
+                cpu->h = aux >> 8;
+                cpu->l = aux & 0xff;
+                (cpu->flags).c = cpu->sp > aux;
                 break;
 
             case 0x3d: // DCR A
@@ -192,17 +224,17 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x56: // MOV D M
-                aux = (cpu->h << 8) + cpu->l;
+                aux = (cpu->h << 8) | cpu->l;
                 cpu->d = mem[aux];
                 break;
 
             case 0x5e: // MOV E M
-                aux = (cpu->h << 8) + cpu->l;
+                aux = (cpu->h << 8) | cpu->l;
                 cpu->e = mem[aux];
                 break;
 
             case 0x66: // MOV H M
-                aux = (cpu->h << 8) + cpu->l;
+                aux = (cpu->h << 8) | cpu->l;
                 cpu->h = mem[aux];
                 break;
 
@@ -211,7 +243,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x77: // MOV M A
-                aux = (cpu->h << 8) + cpu->l;
+                aux = (cpu->h << 8) | cpu->l;
                 mem[aux] = cpu->a;
                 break;
 
@@ -228,7 +260,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x7e: // MOV A M
-                aux = (cpu->h << 8) + cpu->l;
+                aux = (cpu->h << 8) | cpu->l;
                 cpu->a = mem[aux];
                 break;
 
