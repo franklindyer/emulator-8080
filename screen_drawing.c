@@ -36,7 +36,7 @@ void draw_pixel_screen_rotated(SDL_Surface* screen, unsigned char* bitmap, int r
     int fill = 0;
     SDL_Rect rect = {0, screen->h - pix_h, pix_w, pix_h};
     for (int i = 0; i < r*c; i++) {
-        int rem = (7 - i % 8);
+        int rem = i % 8;
         fill = 255 * ((bitmap[i/8] & (1 << rem)) >> rem); fill = 255 - fill;
         SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill, fill, fill));
         rect.y += -pix_h;

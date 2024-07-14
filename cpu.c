@@ -81,6 +81,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x00: // NOP
                 break;
 
+            case 0x01: // LXI BC D16
+                cpu->b = mem[pc+2];
+                cpu->c = mem[pc+1];
+                cpu->pc += 2;
+                break;
+
             case 0x05: // DCR B
                 DCR(cpu,cpu->b)
                 break;
@@ -191,7 +197,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x31: // LXI SP D16
-                cpu->sp = (mem[pc+2] << 8) + mem[pc+1];
+                cpu->sp = (mem[pc+2] << 8) | mem[pc+1];
                 cpu->pc += 2;
                 break;
 
