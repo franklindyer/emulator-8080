@@ -3,7 +3,7 @@
 
 #define DCR(cpu,r) \
     r += -1; \
-    if (r == 0) (cpu->flags).z = 0; \
+    (cpu->flags).z = (r == 0); \
     (cpu->flags).s = r >> 7; \
     SETPARITY((cpu->flags).p, r) \
     (cpu->flags).ac = (r & 0xf) == 0xf;
@@ -68,7 +68,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
         bound--;
         pc = cpu->pc;
         op = &cpu->memory[cpu->pc];
-        printf("Doing operation 0x%02x\n", *op);
+        printf("At 0x%04x doing operation 0x%02x\n", cpu->pc, *op);
         cpu->pc++;
         switch(*op) {
 
@@ -189,6 +189,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 aux = (cpu->h << 8) + cpu->l;
                 cpu->a = mem[aux];
                 break;
+
+            case 0xc2: // JNZ D16
+                if (!(cpu->flags).z) cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                else cpu->pc += 2;
+                break; 
 
             case 0xc3: // JMP D16
                 cpu->pc = (mem[pc+2] << 8) + mem[pc+1];

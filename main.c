@@ -55,8 +55,13 @@ void run_invaders() {
     int size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem, size);
-    
-    emulate_cpu8080(&cpu, 1000);
+
+    int i = 0;    
+    while(i < 100000) {
+        i++; printf("%d\t", i);
+        emulate_cpu8080(&cpu, 1);
+    }
+    print_cpu_state(&cpu);
 }
 
 int main() {
