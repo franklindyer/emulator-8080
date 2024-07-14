@@ -13,6 +13,12 @@
     a = a - r; \
     (cpu->flags).s = (a & 0x80) >> 7; \
     SETPARITY((cpu->flags).p, a);
+#define XRA(cpu,r) \
+    cpu->a = cpu->a ^ r; \
+    SETZSP(cpu->flags,cpu->a) \
+    (cpu->flags).c = 0; \
+    (cpu->flags).ac = 0;
+#define SETZSP(flg,x) (flg).z = (x) == 0; (flg).s = (x >> 7) & 1; SETPARITY((flg).p,x)
 #define SETPARITY(p,x) p=x; p=((p)>>4)^((p)&0xf); p=((p)>>2)^((p)&3); p=((p)>>1)^((p)&1);    
 
 typedef struct flags8080 {
@@ -206,6 +212,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x32: // STA D16
+                aux = (mem[pc+2] << 8) | mem[pc+1];
+                mem[aux] = cpu->a;
+                cpu->pc += 2;
+                break;
+
             case 0x35: // DCR M
                 aux = (cpu->h << 8) | cpu->l;
                 DCR(cpu,mem[aux])
@@ -223,6 +235,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = aux >> 8;
                 cpu->l = aux & 0xff;
                 (cpu->flags).c = cpu->sp > aux;
+                break;
+
+            case 0x3a: // LDA D16
+                aux = (mem[pc+2] << 8) | mem[pc+1];
+                cpu->a = mem[aux];
+                cpu->pc += 2;
                 break;
 
             case 0x3d: // DCR A
@@ -275,6 +293,44 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->a = mem[aux];
                 break;
 
+            case 0xa8: // XRA B
+                XRA(cpu,cpu->b);
+                break;
+
+            case 0xa9: // XRA C
+                XRA(cpu,cpu->c);
+                break;
+
+            case 0xaa: // XRA D
+                XRA(cpu,cpu->d);
+                break;
+
+            case 0xab: // XRA E
+                XRA(cpu,cpu->e);
+                break;
+
+            case 0xac: // XRA H
+                XRA(cpu,cpu->h);
+                break;
+
+            case 0xad: // XRA L
+                XRA(cpu,cpu->l);
+                break;
+
+            case 0xae: // XRA M
+                aux = (cpu->h << 8) | cpu->l;
+                XRA(cpu,mem[aux])
+                break;
+
+            case 0xaf: // XRA A
+                cpu->a = 0;
+                (cpu->flags).z = 0;
+                (cpu->flags).s = 0;
+                (cpu->flags).p = 0;
+                (cpu->flags).c = 0;
+                (cpu->flags).ac = 0;
+                break;
+
             case 0xc1: // POP BC
                 cpu->b = mem[cpu->sp+1];
                 cpu->c = mem[cpu->sp];
@@ -294,6 +350,16 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 mem[cpu->sp-1] = cpu->b;
                 mem[cpu->sp-2] = cpu->c;
                 cpu->sp += -2;
+                break;
+
+            case 0xc6: // ADI D8
+                aux = cpu->a;
+                aux += mem[pc+1];
+                cpu->a = aux;
+                SETZSP(cpu->flags,cpu->a)
+                (cpu->flags).c = (aux >> 8) & 1;
+                // AC flag not implemented
+                cpu->pc += 1;
                 break;
 
             case 0xc9: // RET
@@ -340,6 +406,14 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 mem[cpu->sp-1] = cpu->h;
                 mem[cpu->sp-2] = cpu->l;
                 cpu->sp += -2;
+                break;
+
+            case 0xe6: // ANI D8
+                cpu->a = cpu->a & mem[pc+1];
+                SETZSP(cpu->flags,cpu->a)
+                (cpu->flags).c = 0;
+                (cpu->flags).ac = 0;
+                cpu->pc += 1;
                 break;
 
             case 0xeb: // XCHG
