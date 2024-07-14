@@ -345,6 +345,24 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->e = aux & 0xff;
                 break;
 
+            case 0xf1: // POP PSW
+                cpu->a = mem[cpu->sp+1];
+                (cpu->flags).c = mem[cpu->sp] & 1;
+                (cpu->flags).p = (mem[cpu->sp] >> 2) & 1;
+                (cpu->flags).ac = (mem[cpu->sp] >> 4) & 1;
+                (cpu->flags).z = (mem[cpu->sp] >> 6) & 1;
+                (cpu->flags).s = (mem[cpu->sp] >> 7) & 1;
+                cpu->sp += 2;
+                break;
+
+            case 0xf5: // PUSH PSW
+                mem[cpu->sp-1] = cpu->a;
+                aux = 0x01;
+                aux = aux | (cpu->flags).c | ((cpu->flags).p << 2) | ((cpu->flags).ac << 4);
+                aux = aux | ((cpu->flags).z << 6) | ((cpu->flags).s << 7);
+                cpu->sp += -2;
+                break;
+
             case 0xfe: // CPI D8
                 aux = cpu->a;
                 SUB(cpu,cpu->a,mem[pc+1])
