@@ -114,6 +114,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0x0f: // RRC
+                (cpu->flags).c = 1 == (cpu->a & 1);
+                cpu->a = ((cpu->a & 1) << 7) | (cpu->a >> 1);
+                break;
+
             case 0x11: // LXI DE D16
                 cpu->d = mem[pc+2];
                 cpu->e = mem[pc+1];
