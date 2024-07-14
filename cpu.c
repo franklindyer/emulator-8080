@@ -264,6 +264,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->a = mem[aux];
                 break;
 
+            case 0xc1: // POP BC
+                cpu->b = mem[cpu->sp+1];
+                cpu->c = mem[cpu->sp];
+                cpu->sp += 2;
+                break;
+
             case 0xc2: // JNZ D16
                 if (!(cpu->flags).z) cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
                 else cpu->pc += 2;
@@ -290,6 +296,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += -2;
                 cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
                 break;
+            
+            case 0xd1: // POP DE
+                cpu->d = mem[cpu->sp+1];
+                cpu->e = mem[cpu->sp];
+                cpu->sp += 2;
+                break;
 
             case 0xd5: // PUSH DE
                 mem[cpu->sp-1] = cpu->d;
@@ -297,10 +309,24 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += -2;
                 break;
 
+            case 0xe1: // POP HL
+                cpu->h = mem[cpu->sp+1];
+                cpu->l = mem[cpu->sp];
+                cpu->sp += 2;
+                break;
+
             case 0xe5: // PUSH HL
                 mem[cpu->sp-1] = cpu->h;
                 mem[cpu->sp-2] = cpu->l;
                 cpu->sp += -2;
+                break;
+
+            case 0xeb: // XCHG
+                aux = (cpu->h << 8) | cpu->l;
+                cpu->h = cpu->d;
+                cpu->l = cpu->e;
+                cpu->d = aux >> 8;
+                cpu->e = aux & 0xff;
                 break;
 
             case 0xfe: // CPI D8
