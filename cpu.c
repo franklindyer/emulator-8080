@@ -434,12 +434,20 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += 2;
                 break;
 
+            case 0xf3: // DI
+                (cpu->flags).ei = 0;
+                break;
+
             case 0xf5: // PUSH PSW
                 mem[cpu->sp-1] = cpu->a;
                 aux = 0x01;
                 aux = aux | (cpu->flags).c | ((cpu->flags).p << 2) | ((cpu->flags).ac << 4);
                 aux = aux | ((cpu->flags).z << 6) | ((cpu->flags).s << 7);
                 cpu->sp += -2;
+                break;
+
+            case 0xfb: // EI
+                (cpu->flags).ei = 1;
                 break;
 
             case 0xfe: // CPI D8
