@@ -13,11 +13,15 @@
     a = a - r; \
     (cpu->flags).s = (a & 0x80) >> 7; \
     SETPARITY((cpu->flags).p, a);
-#define XRA(cpu,r) \
-    cpu->a = cpu->a ^ r; \
+#define ANA(cpu,r) \
+    cpu->a = cpu->a & r; \
     SETZSP(cpu->flags,cpu->a) \
     (cpu->flags).c = 0; \
     (cpu->flags).ac = 0;
+#define XRA(cpu,r) \
+    cpu->a = cpu->a ^ r; \
+    SETZSP(cpu->flags,cpu->a) \
+    (cpu->flags).c = 0;
 #define SETZSP(flg,x) (flg).z = (x) == 0; (flg).s = (x >> 7) & 1; SETPARITY((flg).p,x)
 #define SETPARITY(p,x) p=x; p=((p)>>4)^((p)&0xf); p=((p)>>2)^((p)&3); p=((p)>>1)^((p)&1);    
 
@@ -291,6 +295,39 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x7e: // MOV A M
                 aux = (cpu->h << 8) | cpu->l;
                 cpu->a = mem[aux];
+                break;
+
+            case 0xa0: // ANA B
+                ANA(cpu,cpu->b);
+                break;
+
+            case 0xa1: // ANA C
+                ANA(cpu,cpu->c);
+                break;
+
+            case 0xa2: // ANA D
+                ANA(cpu,cpu->d);
+                break;
+
+            case 0xa3: // ANA E
+                ANA(cpu,cpu->e);
+                break;
+
+            case 0xa4: // ANA H
+                ANA(cpu,cpu->h);
+                break;
+
+            case 0xa5: // ANA L
+                ANA(cpu,cpu->l);
+                break;
+
+            case 0xa6: // ANA M
+                aux = (cpu->h << 8) | cpu->l;
+                ANA(cpu,mem[aux]);
+                break;
+            
+            case 0xa7: // ANA A
+                ANA(cpu,cpu->a);
                 break;
 
             case 0xa8: // XRA B
