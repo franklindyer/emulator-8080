@@ -7,6 +7,12 @@
     (cpu->flags).s = r >> 7; \
     SETPARITY((cpu->flags).p, r) \
     (cpu->flags).ac = (r & 0xf) == 0xf;
+#define SUB(cpu,a,r) \
+    (cpu->flags).z = (a == r); \
+    (cpu->flags).c = (a < r); \
+    a = a - r; \
+    (cpu->flags).s = (a & 0x80) >> 7; \
+    SETPARITY((cpu->flags).p, a);
 #define SETPARITY(p,x) p=x; p=((p)>>4)^((p)&0xf); p=((p)>>2)^((p)&3); p=((p)>>1)^((p)&1);    
 
 typedef struct flags8080 {
@@ -145,6 +151,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 DCR(cpu,mem[aux])
                 break;
 
+            case 0x36: // MVI M D8
+                aux = (cpu->h << 8) + cpu->l;
+                mem[aux] = mem[pc+1];
+                cpu->pc++;
+                break;
+
             case 0x3d: // DCR A
                 DCR(cpu,cpu->a)
                 break;
@@ -199,11 +211,23 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
                 break;
 
+            case 0xc9: // RET
+                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->sp += 2;
+                break;
+
             case 0xcd: // CALL
-                mem[cpu->sp-1] = cpu->pc >> 8;
-                mem[cpu->sp-2] = cpu->pc & 255;
+                mem[cpu->sp-1] = (pc+3) >> 8;
+                mem[cpu->sp-2] = (pc+3) & 0xff;
                 cpu->sp += -2;
                 cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                break;
+
+            case 0xfe: // CPI D8
+                aux = cpu->a;
+                SUB(cpu,cpu->a,mem[pc+1])
+                cpu->a = aux;
+                cpu->pc += 1;
                 break;
 
             default: unimplemented_op(cpu, *op);

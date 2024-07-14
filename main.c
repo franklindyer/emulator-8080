@@ -57,7 +57,7 @@ void run_invaders() {
     read(fd, mainmem, size);
 
     int i = 0;    
-    while(i < 100000) {
+    while(i < 500000) {
         i++; printf("%d\t", i);
         emulate_cpu8080(&cpu, 1);
     }
