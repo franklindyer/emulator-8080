@@ -241,6 +241,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
                 break;
 
+            case 0xc5: // PUSH BC
+                mem[cpu->sp-1] = cpu->b;
+                mem[cpu->sp-2] = cpu->c;
+                cpu->sp += -2;
+                break;
+
             case 0xc9: // RET
                 cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
                 cpu->sp += 2;
@@ -251,6 +257,18 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 mem[cpu->sp-2] = (pc+3) & 0xff;
                 cpu->sp += -2;
                 cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                break;
+
+            case 0xd5: // PUSH DE
+                mem[cpu->sp-1] = cpu->d;
+                mem[cpu->sp-2] = cpu->e;
+                cpu->sp += -2;
+                break;
+
+            case 0xe5: // PUSH HL
+                mem[cpu->sp-1] = cpu->h;
+                mem[cpu->sp-2] = cpu->l;
+                cpu->sp += -2;
                 break;
 
             case 0xfe: // CPI D8
