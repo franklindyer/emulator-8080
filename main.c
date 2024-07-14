@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #include <SDL2/SDL.h>
@@ -6,45 +7,7 @@
 #include "cpu.c"
 #include "screen_drawing.c"
 
-int screen_test() {
-    SDL_Window * window = NULL;
-
-    SDL_Surface * window_surface = NULL;
-    SDL_Surface * image_surface = NULL;
-
-    SDL_Init(SDL_INIT_VIDEO);
-
-    window = SDL_CreateWindow("Window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_SHOWN);
-
-    window_surface = SDL_GetWindowSurface(window);
-    image_surface = SDL_LoadBMP("./data/grumpy-cat.bmp");
-    SDL_Rect rect = {0,0,10,10};
-    char c[5] = {'0', '1', '2', '3', '4'};
-    draw_pixel_row(image_surface, c, 40, 0);
-
-    SDL_BlitSurface(image_surface, NULL, window_surface, NULL);
-
-    SDL_UpdateWindowSurface(window);
-
-    SDL_Event e;
-    int quit = 0;
-    while (!quit){
-        while (SDL_PollEvent(&e)){
-            if (e.type == SDL_QUIT){
-                quit = 1;
-            }
-            if (e.type == SDL_KEYDOWN){
-                quit = 1;
-            }
-        }
-    }
-
-    SDL_DestroyWindow(window);
-    SDL_FreeSurface(image_surface);
-    SDL_Quit();
-
-    return 0;
-}
+#define EXECRATE 1000000
 
 typedef struct space_invaders_display {
     SDL_Window* window;
@@ -86,8 +49,8 @@ void handle_space_invaders_events(cpu8080* cpu, space_invaders_display* display)
 }
 
 void run_invaders() {
-    unsigned char* mainmem = malloc(1 << 16);
-    cpu8080 cpu = {};
+    unsigned char* mainmem = malloc(1 << 16); 
+    cpu8080 cpu = {}; 
     cpu.memory = mainmem;
 
     int fd = open("./data/invaders", O_RDONLY);
@@ -97,13 +60,27 @@ void run_invaders() {
 
     space_invaders_display display = init_space_invaders_display(&mainmem[0x2400]);
 
-    int i = 0;    
-    while(i < 500000) {
-        i++; printf("%d\t", i);
+    int i = 0;
+    int j = 0;
+    while(1) {
+        j = 0;
+        while (j < EXECRATE) {
+        j++; printf("%d\t", j);
         emulate_cpu8080(&cpu, 1);
-        if (i % 10000 == 0) { handle_space_invaders_events(&cpu, &display);
-        getchar(); }
+        }
+        
+            handle_space_invaders_events(&cpu, &display);
+            usleep(8333);
+            update_space_invaders_display(&display);
+            cpu.flags.i = 1;
+            cpu.bus = 0xcf;
+            usleep(8333);
+            update_space_invaders_display(&display);
+            cpu.flags.i = 1;
+            cpu.bus = 0xd7;
+        usleep(1000000);
     }
+
     print_cpu_state(&cpu);
 
     destroy_space_invaders_display(&display);

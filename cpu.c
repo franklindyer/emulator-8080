@@ -22,6 +22,11 @@
     cpu->a = cpu->a ^ r; \
     SETZSP(cpu->flags,cpu->a) \
     (cpu->flags).c = 0;
+#define RST(cpu,n) \
+    cpu->memory[cpu->sp-1] = cpu->pc >> 8; \
+    cpu->memory[cpu->sp-2] = cpu->pc & 0xff; \
+    cpu->sp += -2; \
+    cpu->pc = n << 3;
 #define SETZSP(flg,x) (flg).z = (x) == 0; (flg).s = (x >> 7) & 1; SETPARITY((flg).p,x)
 #define SETPARITY(p,x) p=x; p=((p)>>4)^((p)&0xf); p=((p)>>2)^((p)&3); p=((p)>>1)^((p)&1);    
 
@@ -32,7 +37,8 @@ typedef struct flags8080 {
     uint8_t c : 1;
     uint8_t ac : 1;
     uint8_t ei : 1;
-    uint8_t padding : 2;
+    uint8_t i : 1;
+    uint8_t padding : 1;
 } flags8080;
 
 typedef struct cpu8080 {
@@ -43,6 +49,7 @@ typedef struct cpu8080 {
     uint8_t e;
     uint8_t h;
     uint8_t l;
+    uint8_t bus;
     uint16_t pc;
     uint16_t sp;
     flags8080 flags;
@@ -83,9 +90,15 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
     while (bound > 0) {
         bound--;
         pc = cpu->pc;
-        op = &cpu->memory[cpu->pc];
-        printf("At 0x%04x doing operation 0x%02x\n", cpu->pc, *op);
-        cpu->pc++;
+        if (cpu->flags.i) {
+            op = &cpu->bus;
+            cpu->flags.i = 0;
+        }
+        else {
+            op = &cpu->memory[cpu->pc];
+            printf("At 0x%04x doing operation 0x%02x\n", cpu->pc, *op);
+            cpu->pc++;
+        }
         switch(*op) {
 
             case 0x00: // NOP
@@ -399,6 +412,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0xc7: // RST 0
+                RST(cpu,0)
+                break;
+
             case 0xc9: // RET
                 cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
                 cpu->sp += 2;
@@ -410,7 +427,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += -2;
                 cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
                 break;
-            
+           
+            case 0xcf: // RST 1
+                RST(cpu,1)
+                break;
+ 
             case 0xd1: // POP DE
                 cpu->d = mem[cpu->sp+1];
                 cpu->e = mem[cpu->sp];
@@ -428,9 +449,17 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += -2;
                 break;
 
+            case 0xd7: // RST 2
+                RST(cpu,2)
+                break;
+
             case 0xdb: // IN
                 // UNIMPLEMENTED FOR NOW
                 cpu->pc += 1;
+                break;
+
+            case 0xdf: // RST 3
+                RST(cpu,3)
                 break;
 
             case 0xe1: // POP HL
@@ -453,12 +482,20 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0xe7: // RST 4
+                RST(cpu,4)
+                break;
+
             case 0xeb: // XCHG
                 aux = (cpu->h << 8) | cpu->l;
                 cpu->h = cpu->d;
                 cpu->l = cpu->e;
                 cpu->d = aux >> 8;
                 cpu->e = aux & 0xff;
+                break;
+
+            case 0xef: // RST 5
+                RST(cpu,5)
                 break;
 
             case 0xf1: // POP PSW
@@ -483,6 +520,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += -2;
                 break;
 
+            case 0xf7: // RST 6
+                RST(cpu,6)
+                break;
+
             case 0xfb: // EI
                 (cpu->flags).ei = 1;
                 break;
@@ -492,6 +533,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 SUB(cpu,cpu->a,mem[pc+1])
                 cpu->a = aux;
                 cpu->pc += 1;
+                break;
+
+            case 0xff: // RST 7
+                RST(cpu,7)
                 break;
 
             default: unimplemented_op(cpu, *op);
