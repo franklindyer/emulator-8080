@@ -303,10 +303,20 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += 2;
                 break;
 
+            case 0xd3: // OUT
+                // UNIMPLEMENTED FOR NOW
+                cpu->pc += 1;
+                break;
+
             case 0xd5: // PUSH DE
                 mem[cpu->sp-1] = cpu->d;
                 mem[cpu->sp-2] = cpu->e;
                 cpu->sp += -2;
+                break;
+
+            case 0xdb: // IN
+                // UNIMPLEMENTED FOR NOW
+                cpu->pc += 1;
                 break;
 
             case 0xe1: // POP HL
