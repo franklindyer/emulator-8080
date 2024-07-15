@@ -27,6 +27,20 @@
     cpu->memory[cpu->sp-2] = cpu->pc & 0xff; \
     cpu->sp += -2; \
     cpu->pc = n << 3;
+#define MOVCASE(code,r,s) \
+    case code: \
+        r = s; \
+        break;
+#define MOVMCASE(code,r,cpu) \
+    case code: \
+        aux = (cpu->h << 8) | cpu->l; \
+        r = cpu->memory[aux]; \
+        break;
+#define MOVTOMCASE(code,r,cpu) \
+    case code: \
+        aux = (cpu->h << 8) | cpu->l; \
+        cpu->memory[aux] = r; \
+        break;
 #define SETZSP(flg,x) (flg).z = (x) == 0; (flg).s = (x >> 7) & 1; SETPARITY((flg).p,x)
 #define SETPARITY(p,x) p=x; p=((p)>>4)^((p)&0xf); p=((p)>>2)^((p)&3); p=((p)>>1)^((p)&1);    
 
@@ -289,46 +303,79 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
-            case 0x56: // MOV D M
-                aux = (cpu->h << 8) | cpu->l;
-                cpu->d = mem[aux];
-                break;
+            MOVCASE(0x40,cpu->b,cpu->b) // MOV B B
+            MOVCASE(0x41,cpu->b,cpu->c) // MOV B C
+            MOVCASE(0x42,cpu->b,cpu->d) // MOV B D
+            MOVCASE(0x43,cpu->b,cpu->e) // MOV B E
+            MOVCASE(0x44,cpu->b,cpu->h) // MOV B H
+            MOVCASE(0x45,cpu->b,cpu->l) // MOV B L
+            MOVMCASE(0x46,cpu->b,cpu) // MOV B M
+            MOVCASE(0x47,cpu->b,cpu->a) // MOV B A
 
-            case 0x5e: // MOV E M
-                aux = (cpu->h << 8) | cpu->l;
-                cpu->e = mem[aux];
-                break;
+            MOVCASE(0x48,cpu->c,cpu->b) // MOV C B
+            MOVCASE(0x49,cpu->c,cpu->c) // MOV C C
+            MOVCASE(0x4a,cpu->c,cpu->d) // MOV C D
+            MOVCASE(0x4b,cpu->c,cpu->e) // MOV C E
+            MOVCASE(0x4c,cpu->c,cpu->h) // MOV C H
+            MOVCASE(0x4d,cpu->c,cpu->l) // MOV C L
+            MOVMCASE(0x4e,cpu->c,cpu) // MOV C M
+            MOVCASE(0x4f,cpu->c,cpu->a) // MOV C A
 
-            case 0x66: // MOV H M
-                aux = (cpu->h << 8) | cpu->l;
-                cpu->h = mem[aux];
-                break;
+            MOVCASE(0x50,cpu->d,cpu->b) // MOV D B
+            MOVCASE(0x51,cpu->d,cpu->c) // MOV D C
+            MOVCASE(0x52,cpu->d,cpu->d) // MOV D D
+            MOVCASE(0x53,cpu->d,cpu->e) // MOV D E
+            MOVCASE(0x54,cpu->d,cpu->h) // MOV D H
+            MOVCASE(0x55,cpu->d,cpu->l) // MOV D L
+            MOVMCASE(0x56,cpu->d,cpu) // MOV D M
+            MOVCASE(0x57,cpu->d,cpu->a) // MOV D A
 
-            case 0x6f: // MOV L A
-                cpu->l = cpu->a;
-                break;
+            MOVCASE(0x58,cpu->e,cpu->b) // MOV E B
+            MOVCASE(0x59,cpu->e,cpu->c) // MOV E C
+            MOVCASE(0x5a,cpu->e,cpu->d) // MOV E D
+            MOVCASE(0x5b,cpu->e,cpu->e) // MOV E E
+            MOVCASE(0x5c,cpu->e,cpu->h) // MOV E H
+            MOVCASE(0x5d,cpu->e,cpu->l) // MOV E L
+            MOVMCASE(0x5e,cpu->e,cpu) // MOV E M
+            MOVCASE(0x5f,cpu->e,cpu->a) // MOV E A
 
-            case 0x77: // MOV M A
-                aux = (cpu->h << 8) | cpu->l;
-                mem[aux] = cpu->a;
-                break;
+            MOVCASE(0x60,cpu->h,cpu->b) // MOV H B
+            MOVCASE(0x61,cpu->h,cpu->c) // MOV H C
+            MOVCASE(0x62,cpu->h,cpu->d) // MOV H D
+            MOVCASE(0x63,cpu->h,cpu->e) // MOV H E
+            MOVCASE(0x64,cpu->h,cpu->h) // MOV H H
+            MOVCASE(0x65,cpu->h,cpu->l) // MOV H L
+            MOVMCASE(0x66,cpu->h,cpu) // MOV H M
+            MOVCASE(0x67,cpu->h,cpu->a) // MOV H A
 
-            case 0x7a: // MOV A D
-                cpu->a = cpu->d;
-                break;
+            MOVCASE(0x68,cpu->l,cpu->b) // MOV L B
+            MOVCASE(0x69,cpu->l,cpu->c) // MOV L C
+            MOVCASE(0x6a,cpu->l,cpu->d) // MOV L D
+            MOVCASE(0x6b,cpu->l,cpu->e) // MOV L E
+            MOVCASE(0x6c,cpu->l,cpu->h) // MOV L H
+            MOVCASE(0x6d,cpu->l,cpu->l) // MOV L L
+            MOVMCASE(0x6e,cpu->l,cpu) // MOV L M
+            MOVCASE(0x6f,cpu->l,cpu->a) // MOV L A
 
-            case 0x7b: // MOV A E
-                cpu->a = cpu->e;
-                break;
+            MOVTOMCASE(0x70,cpu->b,cpu) // MOV M B
+            MOVTOMCASE(0x71,cpu->c,cpu) // MOV M C
+            MOVTOMCASE(0x72,cpu->d,cpu) // MOV M D
+            MOVTOMCASE(0x73,cpu->e,cpu) // MOV M E
+            MOVTOMCASE(0x74,cpu->h,cpu) // MOV M H
+            MOVTOMCASE(0x75,cpu->l,cpu) // MOV M L
+            MOVTOMCASE(0x77,cpu->a,cpu) // MOV M A
 
-            case 0x7c: // MOV A H
-                cpu->a = cpu->h;
-                break;
+            case 0x76: // HLT
+                return;
 
-            case 0x7e: // MOV A M
-                aux = (cpu->h << 8) | cpu->l;
-                cpu->a = mem[aux];
-                break;
+            MOVCASE(0x78,cpu->a,cpu->b) // MOV A B
+            MOVCASE(0x79,cpu->a,cpu->c) // MOV A C
+            MOVCASE(0x7a,cpu->a,cpu->d) // MOV A D
+            MOVCASE(0x7b,cpu->a,cpu->e) // MOV A E
+            MOVCASE(0x7c,cpu->a,cpu->h) // MOV A H
+            MOVCASE(0x7d,cpu->a,cpu->l) // MOV A L
+            MOVMCASE(0x7e,cpu->a,cpu) // MOV A M
+            MOVCASE(0x7f,cpu->a,cpu->a) // MOV A A
 
             case 0xa0: // ANA B
                 ANA(cpu,cpu->b);
