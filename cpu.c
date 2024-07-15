@@ -21,7 +21,13 @@
 #define XRA(cpu,r) \
     cpu->a = cpu->a ^ r; \
     SETZSP(cpu->flags,cpu->a) \
-    (cpu->flags).c = 0;
+    (cpu->flags).c = 0; \
+    (cpu->flags).ac = 0;
+#define ORA(cpu,r) \
+    cpu->a = cpu->a | r; \
+    SETZSP(cpu->flags,cpu->a) \
+    (cpu->flags).c = 0; \
+    (cpu->flags).ac = 0;
 #define RST(cpu,n) \
     cpu->memory[cpu->sp-1] = cpu->pc >> 8; \
     cpu->memory[cpu->sp-2] = cpu->pc & 0xff; \
@@ -378,60 +384,60 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             MOVCASE(0x7f,cpu->a,cpu->a) // MOV A A
 
             case 0xa0: // ANA B
-                ANA(cpu,cpu->b);
+                ANA(cpu,cpu->b)
                 break;
 
             case 0xa1: // ANA C
-                ANA(cpu,cpu->c);
+                ANA(cpu,cpu->c)
                 break;
 
             case 0xa2: // ANA D
-                ANA(cpu,cpu->d);
+                ANA(cpu,cpu->d)
                 break;
 
             case 0xa3: // ANA E
-                ANA(cpu,cpu->e);
+                ANA(cpu,cpu->e)
                 break;
 
             case 0xa4: // ANA H
-                ANA(cpu,cpu->h);
+                ANA(cpu,cpu->h)
                 break;
 
             case 0xa5: // ANA L
-                ANA(cpu,cpu->l);
+                ANA(cpu,cpu->l)
                 break;
 
             case 0xa6: // ANA M
                 aux = (cpu->h << 8) | cpu->l;
-                ANA(cpu,mem[aux]);
+                ANA(cpu,mem[aux])
                 break;
             
             case 0xa7: // ANA A
-                ANA(cpu,cpu->a);
+                ANA(cpu,cpu->a)
                 break;
 
             case 0xa8: // XRA B
-                XRA(cpu,cpu->b);
+                XRA(cpu,cpu->b)
                 break;
 
             case 0xa9: // XRA C
-                XRA(cpu,cpu->c);
+                XRA(cpu,cpu->c)
                 break;
 
             case 0xaa: // XRA D
-                XRA(cpu,cpu->d);
+                XRA(cpu,cpu->d)
                 break;
 
             case 0xab: // XRA E
-                XRA(cpu,cpu->e);
+                XRA(cpu,cpu->e)
                 break;
 
             case 0xac: // XRA H
-                XRA(cpu,cpu->h);
+                XRA(cpu,cpu->h)
                 break;
 
             case 0xad: // XRA L
-                XRA(cpu,cpu->l);
+                XRA(cpu,cpu->l)
                 break;
 
             case 0xae: // XRA M
@@ -446,6 +452,39 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 (cpu->flags).p = 0;
                 (cpu->flags).c = 0;
                 (cpu->flags).ac = 0;
+                break;
+
+            case 0xb0: // ORA B
+                ORA(cpu,cpu->b)
+                break;
+
+            case 0xb1: // ORA C
+                ORA(cpu,cpu->c)
+                break;
+
+            case 0xb2: // ORA D
+                ORA(cpu,cpu->d)
+                break;
+
+            case 0xb3: // ORA E
+                ORA(cpu,cpu->e)
+                break;
+
+            case 0xb4: // ORA H
+                ORA(cpu,cpu->h)
+                break;
+
+            case 0xb5: // ORA L
+                ORA(cpu,cpu->l)
+                break;
+
+            case 0xb6: // ORA M
+                aux = (cpu->h << 8) | cpu->l;
+                ORA(cpu,mem[aux])
+                break;
+
+            case 0xb7: // ORA A
+                ORA(cpu,cpu->a)
                 break;
 
             case 0xc0: // RNZ
