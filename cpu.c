@@ -96,7 +96,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
         }
         else {
             op = &cpu->memory[cpu->pc];
-            printf("At 0x%04x doing operation 0x%02x\n", cpu->pc, *op);
+            // printf("At 0x%04x doing operation 0x%02x\n", cpu->pc, *op);
             cpu->pc++;
         }
         switch(*op) {
@@ -424,6 +424,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += 2;
                 break;
 
+            case 0xca: // JZ D16
+                if ((cpu->flags).z) cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                else cpu->pc += 2;
+                break;
+
             case 0xcd: // CALL
                 mem[cpu->sp-1] = (pc+3) >> 8;
                 mem[cpu->sp-2] = (pc+3) & 0xff;
@@ -454,6 +459,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xd7: // RST 2
                 RST(cpu,2)
+                break;
+
+            case 0xda: // JC D16
+                if ((cpu->flags).c) cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                else cpu->pc += 2;
                 break;
 
             case 0xdb: // IN

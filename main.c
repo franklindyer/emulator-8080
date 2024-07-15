@@ -65,20 +65,20 @@ void run_invaders() {
     while(1) {
         j = 0;
         while (j < EXECRATE) {
-        j++; printf("%d\t", j);
-        emulate_cpu8080(&cpu, 1);
+            j++; // printf("%d\t", j);
+            emulate_cpu8080(&cpu, 1);
         }
-        
-            handle_space_invaders_events(&cpu, &display);
-            usleep(8333);
-            update_space_invaders_display(&display);
-            cpu.flags.i = 1;
-            cpu.bus = 0xcf;
-            usleep(8333);
-            update_space_invaders_display(&display);
-            cpu.flags.i = 1;
-            cpu.bus = 0xd7;
-        usleep(1000000);
+            
+        handle_space_invaders_events(&cpu, &display);
+        usleep(8333);
+        update_space_invaders_display(&display);
+        cpu.flags.i = 1;
+        cpu.bus = 0xcf;
+        usleep(8333);
+        update_space_invaders_display(&display);
+        cpu.flags.i = 1;
+        cpu.bus = 0xd7;
+        // usleep(1000000);
     }
 
     print_cpu_state(&cpu);
