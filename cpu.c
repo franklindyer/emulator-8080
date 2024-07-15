@@ -110,6 +110,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x03: // INX BC
+                aux = (cpu->b << 8) | cpu->c;
+                aux++;
+                cpu->b = aux >> 8;
+                cpu->c = aux & 255;
+                break;
+
             case 0x05: // DCR B
                 DCR(cpu,cpu->b)
                 break;
@@ -126,6 +133,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = aux >> 8;
                 cpu->l = aux & 0xff;
                 (cpu->flags).c = aux2 > aux;
+                break;
+
+            case 0x0a: // LDAX BC
+                aux = (cpu->b << 8) | cpu->c;
+                cpu->a = mem[aux];
                 break;
 
             case 0x0d: // DCR C
@@ -235,6 +247,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x33: // INX SP
+                cpu->sp++;
+                break;
+
             case 0x35: // DCR M
                 aux = (cpu->h << 8) | cpu->l;
                 DCR(cpu,mem[aux])
@@ -244,6 +260,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 aux = (cpu->h << 8) | cpu->l;
                 mem[aux] = mem[pc+1];
                 cpu->pc++;
+                break;
+
+            case 0x37: // STC
+                (cpu->flags).c = 1;
                 break;
 
             case 0x39: // DAD SP
