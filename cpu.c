@@ -207,6 +207,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0x17: // RAL
+                aux = cpu->a;
+                cpu->a = (cpu->a << 1) | (cpu->flags).c;
+                (cpu->flags).c = (aux >> 7) & 1;
+                break;
+
             case 0x1a: // LDAX DE
                 aux = (cpu->d << 8) | cpu->e;
                 cpu->a = mem[aux];
@@ -228,6 +234,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = aux >> 8;
                 cpu->l = aux & 0xff;
                 (cpu->flags).c = aux2 > aux;
+                break;
+
+            case 0x1f: // RAR
+                aux = cpu->a;
+                cpu->a = (cpu->a >> 1) | ((cpu->flags).c << 7);
+                (cpu->flags).c = aux & 1;
                 break;
 
             case 0x21: // LXI HL D16
@@ -256,6 +268,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 (cpu->flags).c = cpu->h >> 7;
                 cpu->h = (cpu->h << 1) | (cpu->l >> 7);
                 cpu->l = cpu->l << 1;
+                break;
+
+            case 0x2a: // LHLD D16
+                aux = (mem[pc+2] << 8) | mem[pc+1];
+                cpu->h = mem[aux+1];
+                cpu->l = mem[aux];
+                cpu->pc += 2;
                 break;
 
             case 0x2d: // DCR L
