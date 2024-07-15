@@ -448,6 +448,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 (cpu->flags).ac = 0;
                 break;
 
+            case 0xc0: // RNZ
+                if ((cpu->flags).z) break; 
+                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->sp += 2;
+                break;
+
             case 0xc1: // POP BC
                 cpu->b = mem[cpu->sp+1];
                 cpu->c = mem[cpu->sp];
@@ -507,6 +513,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 RST(cpu,1)
                 break;
  
+            case 0xd0: // RNC
+                if ((cpu->flags).c) break; 
+                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->sp += 2;
+                break;
+
             case 0xd1: // POP DE
                 cpu->d = mem[cpu->sp+1];
                 cpu->e = mem[cpu->sp];
@@ -528,6 +540,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 RST(cpu,2)
                 break;
 
+            case 0xd8: // RC
+                if (!(cpu->flags).c) break; 
+                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->sp += 2;
+                break;
+
             case 0xda: // JC D16
                 if ((cpu->flags).c) cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
                 else cpu->pc += 2;
@@ -540,6 +558,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xdf: // RST 3
                 RST(cpu,3)
+                break;
+
+            case 0xe0: // RPO
+                if (!(cpu->flags).p) break; 
+                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->sp += 2;
                 break;
 
             case 0xe1: // POP HL
@@ -566,6 +590,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 RST(cpu,4)
                 break;
 
+            case 0xe8: // RPE
+                if ((cpu->flags).p) break; 
+                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->sp += 2;
+                break;
+
             case 0xeb: // XCHG
                 aux = (cpu->h << 8) | cpu->l;
                 cpu->h = cpu->d;
@@ -576,6 +606,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xef: // RST 5
                 RST(cpu,5)
+                break;
+
+            case 0xf0: // RP
+                if ((cpu->flags).s) break; 
+                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->sp += 2;
                 break;
 
             case 0xf1: // POP PSW
@@ -602,6 +638,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xf7: // RST 6
                 RST(cpu,6)
+                break;
+
+            case 0xf8: // RM
+                if (!(cpu->flags).s) break; 
+                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->sp += 2;
                 break;
 
             case 0xfb: // EI
