@@ -416,6 +416,9 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 RST(cpu,0)
                 break;
 
+            case 0xc8: // RZ
+                if (!(cpu->flags).z) break;
+
             case 0xc9: // RET
                 cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
                 cpu->sp += 2;
