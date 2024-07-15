@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-
+// These macros for use only inside the main case switch of emulate_cpu8080
 #define DCR(cpu,r) \
     r += -1; \
     (cpu->flags).z = (r == 0); \
@@ -47,6 +47,12 @@
         aux = (cpu->h << 8) | cpu->l; \
         cpu->memory[aux] = r; \
         break;
+#define CALL(cpu) \
+    mem[cpu->sp-1] = (pc+3) >> 8; \
+    mem[cpu->sp-2] = (pc+3) & 0xff; \
+    cpu->sp += -2; \
+    cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+
 #define SETZSP(flg,x) (flg).z = (x) == 0; (flg).s = (x >> 7) & 1; SETPARITY((flg).p,x)
 #define SETPARITY(p,x) p=x; p=((p)>>4)^((p)&0xf); p=((p)>>2)^((p)&3); p=((p)>>1)^((p)&1);    
 
@@ -144,6 +150,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x06: // MVI B D8
                 cpu->b = mem[pc+1];
                 cpu->pc += 1;
+                break;
+
+            case 0x07: // RLC
+                (cpu->flags).c = cpu->a >> 7;
+                cpu->a = (cpu->a >> 7) | (cpu->a << 1);
                 break;
 
             case 0x09: // DAD BC
@@ -508,6 +519,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
                 break;
 
+            case 0xc4: // CNZ D16
+                if (!(cpu->flags).z) { CALL(cpu) }
+                else cpu->pc += 2;
+                break;
+
             case 0xc5: // PUSH BC
                 mem[cpu->sp-1] = cpu->b;
                 mem[cpu->sp-2] = cpu->c;
@@ -541,11 +557,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 else cpu->pc += 2;
                 break;
 
+            case 0xcc: // CZ
+                if ((cpu->flags).z) { CALL(cpu) }
+                else cpu->pc += 2;
+                break;
+
             case 0xcd: // CALL
-                mem[cpu->sp-1] = (pc+3) >> 8;
-                mem[cpu->sp-2] = (pc+3) & 0xff;
-                cpu->sp += -2;
-                cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                CALL(cpu)
                 break;
            
             case 0xcf: // RST 1
@@ -569,10 +587,22 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0xd4: // CNC
+                if (!(cpu->flags).c) { CALL(cpu) }
+                else cpu->pc += 2;
+                break;
+
             case 0xd5: // PUSH DE
                 mem[cpu->sp-1] = cpu->d;
                 mem[cpu->sp-2] = cpu->e;
                 cpu->sp += -2;
+                break;
+
+            case 0xd6: // SUI D8
+                cpu->a = cpu->a - mem[pc+1];
+                SETZSP(cpu->flags,cpu->a)
+                (cpu->flags).c = cpu->a > mem[pc+1];
+                cpu->pc += 1;
                 break;
 
             case 0xd7: // RST 2
@@ -595,6 +625,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0xdc: // CC
+                if ((cpu->flags).c) { CALL(cpu) }
+                else cpu->pc += 2;
+                break;
+
             case 0xdf: // RST 3
                 RST(cpu,3)
                 break;
@@ -609,6 +644,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = mem[cpu->sp+1];
                 cpu->l = mem[cpu->sp];
                 cpu->sp += 2;
+                break;
+
+            case 0xe4: // CPO
+                if ((cpu->flags).p) { CALL(cpu) }
+                else cpu->pc += 2;
                 break;
 
             case 0xe5: // PUSH HL
@@ -643,6 +683,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->e = aux & 0xff;
                 break;
 
+            case 0xec: // CPE
+                if (!(cpu->flags).p) { CALL(cpu) }
+                else cpu->pc += 2;
+                break;
+
             case 0xef: // RST 5
                 RST(cpu,5)
                 break;
@@ -667,6 +712,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 (cpu->flags).ei = 0;
                 break;
 
+            case 0xf4: // CP
+                if (!(cpu->flags).s) { CALL(cpu) }
+                else cpu->pc += 2;
+                break;
+
             case 0xf5: // PUSH PSW
                 mem[cpu->sp-1] = cpu->a;
                 aux = 0x01;
@@ -687,6 +737,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xfb: // EI
                 (cpu->flags).ei = 1;
+                break;
+
+            case 0xfc: // CM
+                if ((cpu->flags).s) { CALL(cpu) }
+                else cpu->pc += 2;
                 break;
 
             case 0xfe: // CPI D8
