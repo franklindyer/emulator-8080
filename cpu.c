@@ -717,6 +717,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += 2;
                 break;
 
+            case 0xd2: // JNC D16
+                if (!(cpu->flags).c) cpu->pc = (mem[pc+2] << 8) | mem[pc+1];
+                else cpu->pc += 2;
+                break;
+
             case 0xd3: // OUT
                 // UNIMPLEMENTED FOR NOW
                 cpu->pc += 1;
@@ -746,12 +751,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xd8: // RC
                 if (!(cpu->flags).c) break; 
-                cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
+                cpu->pc = (mem[cpu->sp+1] << 8) | mem[cpu->sp];
                 cpu->sp += 2;
                 break;
 
             case 0xda: // JC D16
-                if ((cpu->flags).c) cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
+                if ((cpu->flags).c) cpu->pc = (mem[pc+2] << 8) | mem[pc+1];
                 else cpu->pc += 2;
                 break;
 
@@ -779,6 +784,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = mem[cpu->sp+1];
                 cpu->l = mem[cpu->sp];
                 cpu->sp += 2;
+                break;
+
+            case 0xe2: // JPO D16
+                if ((cpu->flags).p) cpu->pc = (mem[pc+2] << 8) | mem[pc+1];
+                else cpu->pc += 2;
                 break;
 
             case 0xe3: // XTHL
@@ -820,6 +830,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xe9: // PCHL
                 cpu->pc = (cpu->h << 8) | cpu->l;
+                break;
+
+            case 0xea: // JPE
+                if (!(cpu->flags).p) cpu->pc = (mem[pc+2] << 8) | mem[pc+1];
+                else cpu->pc += 2;
                 break;
 
             case 0xeb: // XCHG
