@@ -772,6 +772,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 else cpu->pc += 2;
                 break;
 
+            case 0xde: // SBI D8
+                (cpu->flags).c = cpu->a < mem[pc+1] + (cpu->flags).c;
+                cpu->a = cpu->a - (mem[pc+1] + (cpu->flags).c);
+                SETZSP(cpu->flags,cpu->a)
+                // AC flag not implemented yet
+                break;
+
             case 0xdf: // RST 3
                 RST(cpu,3)
                 break;
@@ -928,7 +935,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xfe: // CPI D8
                 aux = cpu->a;
-                cpu->c = cpu->a < mem[pc+1];
+                (cpu->flags).c = cpu->a < mem[pc+1];
                 cpu->a = cpu->a - mem[pc+1];
                 SETZSP(cpu->flags,cpu->a)
                 cpu->a = aux;
