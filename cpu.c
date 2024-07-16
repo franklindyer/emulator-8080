@@ -12,10 +12,11 @@
     (cpu->flags).ac = (r & 0xf) == 0xf;
 #define SUB(cpu,a,r) \
     (cpu->flags).z = (a == r); \
+    printf("Reg A is %02x, Reg R is %02x, z flag is %d\n", a, r, (cpu->flags).z); \
     (cpu->flags).c = (a < r); \
     a = a - r; \
     (cpu->flags).s = (a & 0x80) >> 7; \
-    SETPARITY((cpu->flags).p, a);
+    SETPARITY((cpu->flags).p, a)
 #define ANA(cpu,r) \
     cpu->a = cpu->a & r; \
     SETZSP(cpu->flags,cpu->a) \
@@ -57,7 +58,7 @@
     cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
 
 #define SETZSP(flg,x) (flg).z = (x) == 0; (flg).s = (x >> 7) & 1; SETPARITY((flg).p,x)
-#define SETPARITY(p,x) p=x; p=((p)>>4)^((p)&0xf); p=((p)>>2)^((p)&3); p=((p)>>1)^((p)&1);    
+#define SETPARITY(p,x) aux8=x; aux8=(aux8>>4)^(aux8&0xf); aux8=(aux8>>2)^(aux8&3); aux8=(aux8>>1)^(aux8&1); p=aux8; 
 
 typedef struct flags8080 {
     uint8_t z : 1;
@@ -115,6 +116,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
     unsigned char *op;
     unsigned char *mem = cpu->memory;
     uint16_t pc;
+    uint8_t aux8;
     uint16_t aux, aux2;
     while (bound > 0) {
         bound--;
@@ -926,7 +928,9 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xfe: // CPI D8
                 aux = cpu->a;
-                SUB(cpu,cpu->a,mem[pc+1])
+                cpu->c = cpu->a < mem[pc+1];
+                cpu->a = cpu->a - mem[pc+1];
+                SETZSP(cpu->flags,cpu->a)
                 cpu->a = aux;
                 cpu->pc += 1;
                 break;

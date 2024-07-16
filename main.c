@@ -62,22 +62,29 @@ void run_invaders() {
 
     int i = 0;
     int j = 0;
+    int inttype = 0;
+    int step = 0;
     while(1) {
         j = 0;
         while (j < EXECRATE) {
             j++; // printf("%d\t", j);
             emulate_cpu8080(&cpu, 1);
+            if (cpu.pc == 0x0a5e && !cpu.flags.z) {
+                step = 1;
+            }
+            if (step) {
+                print_cpu_state(&cpu); 
+                update_space_invaders_display(&display);
+                if (getchar() == 'c') step = 0;
+            }
         }
             
         handle_space_invaders_events(&cpu, &display);
         usleep(8333);
         update_space_invaders_display(&display);
         cpu.flags.i = 1;
-        cpu.bus = 0xcf;
-        usleep(8333);
-        update_space_invaders_display(&display);
-        cpu.flags.i = 1;
-        cpu.bus = 0xd7;
+        inttype = 1 - inttype;
+        cpu.bus = inttype ? 0xcf : 0xd7;
         // usleep(1000000);
     }
 
