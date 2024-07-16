@@ -585,7 +585,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 ORA(cpu,cpu->a)
                 break;
 
-            case 0xc0: // RNZ
+            case 0xc0: // RNZ D16
                 if ((cpu->flags).z) break; 
                 cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
                 cpu->sp += 2;
@@ -644,12 +644,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 else cpu->pc += 2;
                 break;
 
-            case 0xcc: // CZ
+            case 0xcc: // CZ D16
                 if ((cpu->flags).z) { CALL(cpu) }
                 else cpu->pc += 2;
                 break;
 
-            case 0xcd: // CALL
+            case 0xcd: // CALL D16
                 CALL(cpu)
                 break;
            
@@ -674,7 +674,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
-            case 0xd4: // CNC
+            case 0xd4: // CNC D16
                 if (!(cpu->flags).c) { CALL(cpu) }
                 else cpu->pc += 2;
                 break;
@@ -712,7 +712,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
-            case 0xdc: // CC
+            case 0xdc: // CC D16
                 if ((cpu->flags).c) { CALL(cpu) }
                 else cpu->pc += 2;
                 break;
@@ -741,7 +741,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->l = aux & 0xff;
                 break;
 
-            case 0xe4: // CPO
+            case 0xe4: // CPO D16
                 if ((cpu->flags).p) { CALL(cpu) }
                 else cpu->pc += 2;
                 break;
@@ -782,7 +782,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->e = aux & 0xff;
                 break;
 
-            case 0xec: // CPE
+            case 0xec: // CPE D16
                 if (!(cpu->flags).p) { CALL(cpu) }
                 else cpu->pc += 2;
                 break;
@@ -807,11 +807,16 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += 2;
                 break;
 
+            case 0xf2: // JP D16
+                if (!(cpu->flags).s) cpu->pc = (mem[pc+2] << 8) | mem[pc+1];
+                else cpu->pc += 2;
+                break;
+
             case 0xf3: // DI
                 (cpu->flags).ei = 0;
                 break;
 
-            case 0xf4: // CP
+            case 0xf4: // CP D16
                 if (!(cpu->flags).s) { CALL(cpu) }
                 else cpu->pc += 2;
                 break;
@@ -842,11 +847,16 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += 2;
                 break;
 
+            case 0xfa: // JM D16
+                if ((cpu->flags).s) cpu->pc = (mem[pc+2] << 8) | mem[pc+1];
+                else cpu->pc += 2;
+                break; 
+
             case 0xfb: // EI
                 (cpu->flags).ei = 1;
                 break;
 
-            case 0xfc: // CM
+            case 0xfc: // CM D16
                 if ((cpu->flags).s) { CALL(cpu) }
                 else cpu->pc += 2;
                 break;
