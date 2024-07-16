@@ -585,6 +585,54 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 ORA(cpu,cpu->a)
                 break;
 
+            case 0xb8: // CMP B
+                aux = cpu->a;
+                SUB(cpu,cpu->a,cpu->b)
+                cpu->a = aux;
+                break;
+
+            case 0xb9: // CMP C
+                aux = cpu->a;
+                SUB(cpu,cpu->a,cpu->c)
+                cpu->a = aux;
+                break;
+
+            case 0xba: // CMP D
+                aux = cpu->a;
+                SUB(cpu,cpu->a,cpu->d)
+                cpu->a = aux;
+                break;
+
+            case 0xbb: // CMP E
+                aux = cpu->a;
+                SUB(cpu,cpu->a,cpu->e)
+                cpu->a = aux;
+                break;
+
+            case 0xbc: // CMP H
+                aux = cpu->a;
+                SUB(cpu,cpu->a,cpu->h)
+                cpu->a = aux;
+                break;
+
+            case 0xbd: // CMP L
+                aux = cpu->a;
+                SUB(cpu,cpu->a,cpu->l)
+                cpu->a = aux;
+                break;
+
+            case 0xbe: // CMP M
+                aux = cpu->a;
+                SUB(cpu,cpu->a,mem[(cpu->h << 8) | cpu->l])
+                cpu->a = aux;
+                break;
+
+            case 0xbf: // CMP A
+                aux = cpu->a;
+                SUB(cpu,cpu->a,cpu->a)
+                cpu->a = aux;
+                break;
+
             case 0xc0: // RNZ D16
                 if ((cpu->flags).z) break; 
                 cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
