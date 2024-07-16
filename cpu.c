@@ -10,6 +10,10 @@
     (cpu->flags).s = r >> 7; \
     SETPARITY((cpu->flags).p, r) \
     (cpu->flags).ac = (r & 0xf) == 0xf;
+#define ADD(cpu,r) \
+    cpu->a = cpu->a + r; \
+    SETZSP(cpu->flags,cpu->a) \
+    (cpu->flags).c = cpu->a < r;
 #define SUB(cpu,a,r) \
     (cpu->flags).z = (a == r); \
     (cpu->flags).c = (a < r); \
@@ -482,6 +486,39 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             MOVCASE(0x7d,cpu->a,cpu->l) // MOV A L
             MOVMCASE(0x7e,cpu->a,cpu) // MOV A M
             MOVCASE(0x7f,cpu->a,cpu->a) // MOV A A
+
+            case 0x80: // ADD B
+                ADD(cpu,cpu->b)
+                break; 
+
+            case 0x81: // ADD C
+                ADD(cpu,cpu->c)
+                break; 
+
+            case 0x82: // ADD D
+                ADD(cpu,cpu->d)
+                break; 
+
+            case 0x83: // ADD E
+                ADD(cpu,cpu->e)
+                break; 
+
+            case 0x84: // ADD H
+                ADD(cpu,cpu->h)
+                break; 
+
+            case 0x85: // ADD L
+                ADD(cpu,cpu->l)
+                break; 
+
+            case 0x86: // ADD M
+                aux = (cpu->h << 8) | cpu->l;
+                ADD(cpu,mem[aux])
+                break; 
+
+            case 0x87: // ADD A
+                ADD(cpu,cpu->a)
+                break; 
 
             case 0xa0: // ANA B
                 ANA(cpu,cpu->b)
