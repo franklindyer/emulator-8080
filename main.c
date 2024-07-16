@@ -7,7 +7,7 @@
 #include "cpu.c"
 #include "screen_drawing.c"
 
-#define EXECRATE 20000000
+#define EXECRATE 999999
 
 typedef struct space_invaders_display {
     SDL_Window* window;
@@ -66,10 +66,10 @@ void run_invaders() {
     int step = 0;
     while(1) {
         j = 0;
-        while (j < 1) {
+        while (j < EXECRATE) {
             j++; // printf("%d\t", j);
-            emulate_cpu8080(&cpu, EXECRATE);
-            /* if (cpu.pc == 0xffff) {
+            emulate_cpu8080(&cpu, 1);
+            if (cpu.pc == 0x0a5e && !(cpu.flags).z) {
                 uint16_t pc = cpu.pc;
                 printf("Prev PC at breakpoint: %04x\n", cpu.lastpc);
                 step = 1;
@@ -78,9 +78,10 @@ void run_invaders() {
                 print_cpu_state(&cpu); 
                 update_space_invaders_display(&display);
                 if (getchar() == 'c') step = 0;
-            }*/
+            }
         }
-            
+        
+        if (cpu.flags.ei) {    
         handle_space_invaders_events(&cpu, &display);
         // usleep(8333);
         update_space_invaders_display(&display);
@@ -88,6 +89,7 @@ void run_invaders() {
         inttype = 1 - inttype;
         cpu.bus = inttype ? 0xcf : 0xd7;
         // usleep(1000000);
+        }
     }
 
     print_cpu_state(&cpu);

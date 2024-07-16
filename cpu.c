@@ -122,7 +122,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
         bound--;
         cpu->ticks++;
         pc = cpu->pc;
-        if (cpu->flags.ei && cpu->flags.i) {
+        if (cpu->flags.i) {
             op = &cpu->bus;
             cpu->flags.i = 0;
         }
