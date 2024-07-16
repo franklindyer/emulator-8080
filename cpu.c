@@ -12,7 +12,6 @@
     (cpu->flags).ac = (r & 0xf) == 0xf;
 #define SUB(cpu,a,r) \
     (cpu->flags).z = (a == r); \
-    printf("Reg A is %02x, Reg R is %02x, z flag is %d\n", a, r, (cpu->flags).z); \
     (cpu->flags).c = (a < r); \
     a = a - r; \
     (cpu->flags).s = (a & 0x80) >> 7; \
@@ -61,14 +60,13 @@
 #define SETPARITY(p,x) aux8=x; aux8=(aux8>>4)^(aux8&0xf); aux8=(aux8>>2)^(aux8&3); aux8=(aux8>>1)^(aux8&1); p=aux8; 
 
 typedef struct flags8080 {
-    uint8_t z : 1;
-    uint8_t s : 1;
-    uint8_t p : 1;
-    uint8_t c : 1;
-    uint8_t ac : 1;
-    uint8_t ei : 1;
-    uint8_t i : 1;
-    uint8_t padding : 1;
+    unsigned char z;
+    unsigned char s;
+    unsigned char p;
+    unsigned char c;
+    unsigned char ac;
+    unsigned char ei;
+    unsigned char i;
 } flags8080;
 
 typedef struct cpu8080 {
@@ -80,10 +78,12 @@ typedef struct cpu8080 {
     uint8_t h;
     uint8_t l;
     uint8_t bus;
+    uint16_t lastpc;
     uint16_t pc;
     uint16_t sp;
     flags8080 flags;
     uint8_t* memory;
+    long ticks;
 } cpu8080;
 
 void print_cpu_state(cpu8080* cpu) {
@@ -120,14 +120,14 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
     uint16_t aux, aux2;
     while (bound > 0) {
         bound--;
+        cpu->ticks++;
         pc = cpu->pc;
-        if (cpu->flags.i) {
+        if (cpu->flags.ei && cpu->flags.i) {
             op = &cpu->bus;
             cpu->flags.i = 0;
         }
         else {
             op = &cpu->memory[cpu->pc];
-            // printf("At 0x%04x doing operation 0x%02x\n", cpu->pc, *op);
             cpu->pc++;
         }
         switch(*op) {
@@ -222,7 +222,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 INR(cpu,cpu->d)
                 break;
 
-            case 0x15: // DCR D
+           case 0x15: // DCR D
                 DCR(cpu,cpu->d)
                 break;
 
@@ -371,7 +371,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x36: // MVI M D8
                 aux = (cpu->h << 8) | cpu->l;
                 mem[aux] = mem[pc+1];
-                cpu->pc++;
+                cpu->pc += 1;
                 break;
 
             case 0x37: // STC
@@ -777,6 +777,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->a = cpu->a - (mem[pc+1] + (cpu->flags).c);
                 SETZSP(cpu->flags,cpu->a)
                 // AC flag not implemented yet
+                cpu->pc += 1;
                 break;
 
             case 0xdf: // RST 3
@@ -935,9 +936,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0xfe: // CPI D8
                 aux = cpu->a;
-                (cpu->flags).c = cpu->a < mem[pc+1];
-                cpu->a = cpu->a - mem[pc+1];
-                SETZSP(cpu->flags,cpu->a)
+                SUB(cpu,cpu->a,mem[pc+1])
                 cpu->a = aux;
                 cpu->pc += 1;
                 break;
@@ -949,5 +948,6 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             default: unimplemented_op(cpu, *op);
 
         }
+        cpu->lastpc = pc;
     }
 }
