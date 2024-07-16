@@ -281,6 +281,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x22: // SHLD D16
+                aux = (mem[pc+2] << 8) | mem[pc+1];
+                mem[aux] = cpu->l;
+                mem[aux+1] = cpu->h;
+                cpu->pc += 2;
+                break;
+
             case 0x23: // INX HL
                 aux = (cpu->h << 8) | cpu->l;
                 aux++;
@@ -726,6 +733,14 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->sp += 2;
                 break;
 
+            case 0xe3: // XTHL
+                aux = (mem[cpu->sp+1] << 8) | mem[cpu->sp];
+                mem[cpu->sp] = cpu->l;
+                mem[cpu->sp+1] = cpu->h;
+                cpu->h = aux >> 8;
+                cpu->l = aux & 0xff;
+                break;
+
             case 0xe4: // CPO
                 if ((cpu->flags).p) { CALL(cpu) }
                 else cpu->pc += 2;
@@ -753,6 +768,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 if ((cpu->flags).p) break; 
                 cpu->pc = (mem[cpu->sp+1] << 8) + mem[cpu->sp];
                 cpu->sp += 2;
+                break;
+
+            case 0xe9: // PCHL
+                cpu->pc = (cpu->h << 8) | cpu->l;
                 break;
 
             case 0xeb: // XCHG
