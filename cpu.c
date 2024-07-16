@@ -1,6 +1,9 @@
 #include <stdio.h>
 
 // These macros for use only inside the main case switch of emulate_cpu8080
+#define INR(cpu,r) \
+    r += 1; \
+    SETZSP(cpu->flags,r)
 #define DCR(cpu,r) \
     r += -1; \
     (cpu->flags).z = (r == 0); \
@@ -143,6 +146,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->c = aux & 255;
                 break;
 
+            case 0x04: // INR B
+                INR(cpu,cpu->b)
+                break;
+
             case 0x05: // DCR B
                 DCR(cpu,cpu->b)
                 break;
@@ -169,6 +176,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x0a: // LDAX BC
                 aux = (cpu->b << 8) | cpu->c;
                 cpu->a = mem[aux];
+                break;
+
+            case 0x0c: // INR C
+                INR(cpu,cpu->c)
                 break;
 
             case 0x0d: // DCR C
@@ -198,6 +209,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->e = aux & 255;
                 break;
 
+            case 0x14: // INR D
+                INR(cpu,cpu->d)
+                break;
+
             case 0x15: // DCR D
                 DCR(cpu,cpu->d)
                 break;
@@ -216,6 +231,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x1a: // LDAX DE
                 aux = (cpu->d << 8) | cpu->e;
                 cpu->a = mem[aux];
+                break;
+
+            case 0x1c: // INR E
+                INR(cpu,cpu->e)
                 break;
 
             case 0x1d: // DCR E
@@ -255,6 +274,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->l = aux & 255;
                 break;
 
+            case 0x24: // INR H
+                INR(cpu,cpu->h)
+                break;
+
             case 0x25: // DCR H
                 DCR(cpu,cpu->h)
                 break;
@@ -275,6 +298,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = mem[aux+1];
                 cpu->l = mem[aux];
                 cpu->pc += 2;
+                break;
+
+            case 0x2c: // INR L
+                INR(cpu,cpu->l)
                 break;
 
             case 0x2d: // DCR L
@@ -299,6 +326,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
 
             case 0x33: // INX SP
                 cpu->sp++;
+                break;
+
+            case 0x34: // INR M
+                aux = (cpu->h << 8) | cpu->l;
+                INR(cpu,mem[aux])
                 break;
 
             case 0x35: // DCR M
@@ -328,6 +360,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 aux = (mem[pc+2] << 8) | mem[pc+1];
                 cpu->a = mem[aux];
                 cpu->pc += 2;
+                break;
+
+            case 0x3c: // INR A
+                INR(cpu,cpu->a)
                 break;
 
             case 0x3d: // DCR A
@@ -742,6 +778,14 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 aux = aux | (cpu->flags).c | ((cpu->flags).p << 2) | ((cpu->flags).ac << 4);
                 aux = aux | ((cpu->flags).z << 6) | ((cpu->flags).s << 7);
                 cpu->sp += -2;
+                break;
+
+            case 0xf6: // ORI D8
+                cpu->a = cpu->a | mem[pc+1];
+                SETZSP(cpu->flags,cpu->a)
+                (cpu->flags).c = 0;
+                (cpu->flags).ac = 0;
+                cpu->pc += 1;
                 break;
 
             case 0xf7: // RST 6
