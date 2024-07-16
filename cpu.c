@@ -178,6 +178,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->a = mem[aux];
                 break;
 
+            case 0x0b: // DCX BC
+                aux = (cpu->b << 8) | cpu->c;
+                aux--;
+                cpu->b = aux >> 8;
+                cpu->c = aux & 255;
+                break;
+            
             case 0x0c: // INR C
                 INR(cpu,cpu->c)
                 break;
@@ -233,6 +240,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->a = mem[aux];
                 break;
 
+            case 0x1b: // DCX DE
+                aux = (cpu->d << 8) | cpu->e;
+                aux--;
+                cpu->d = aux >> 8;
+                cpu->e = aux & 255;
+                break;
+            
             case 0x1c: // INR E
                 INR(cpu,cpu->e)
                 break;
@@ -300,6 +314,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x2b: // DCX HL
+                aux = (cpu->h << 8) | cpu->l;
+                aux--;
+                cpu->h = aux >> 8;
+                cpu->l = aux & 255;
+                break;
+            
             case 0x2c: // INR L
                 INR(cpu,cpu->l)
                 break;
@@ -362,6 +383,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x3b: // DCX SP
+                cpu->sp--;
+                break;
+            
             case 0x3c: // INR A
                 INR(cpu,cpu->a)
                 break;
