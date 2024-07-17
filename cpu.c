@@ -60,6 +60,29 @@
     cpu->sp += -2; \
     cpu->pc = (mem[pc+2] << 8) + mem[pc+1];
 
+#define PUSHBYTE(cpu,b) \
+    mem[cpu->sp-1] = b; \
+    cpu->sp += -1;
+#define POPBYTE(cpu,r) \
+    r = mem[cpu->sp]; \
+    cpu->sp += 1;
+
+#define PUSHPSW(cpu) \
+    mem[cpu->sp-1] = cpu->a; \
+    aux = 0x01; \
+    aux = aux | (cpu->flags).c | ((cpu->flags).p << 2) | ((cpu->flags).ac << 4); \
+    aux = aux | ((cpu->flags).z << 6) | ((cpu->flags).s << 7); \
+    mem[cpu->sp-2] = aux & 0xff; \
+    cpu->sp += -2;
+#define POPPSW(cpu) \
+    cpu->a = mem[cpu->sp+1]; \
+    (cpu->flags).c = mem[cpu->sp] & 1; \
+    (cpu->flags).p = (mem[cpu->sp] >> 2) & 1; \
+    (cpu->flags).ac = (mem[cpu->sp] >> 4) & 1; \
+    (cpu->flags).z = (mem[cpu->sp] >> 6) & 1; \
+    (cpu->flags).s = (mem[cpu->sp] >> 7) & 1; \
+    cpu->sp += 2;
+
 #define SETZSP(flg,x) (flg).z = (x) == 0; (flg).s = (x >> 7) & 1; SETPARITY((flg).p,x)
 #define SETPARITY(p,x) aux8=x; aux8=(aux8>>4)^(aux8&0xf); aux8=(aux8>>2)^(aux8&3); aux8=(aux8>>1)^(aux8&1); p=aux8; 
 
@@ -908,13 +931,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xf1: // POP PSW
-                cpu->a = mem[cpu->sp+1];
-                (cpu->flags).c = mem[cpu->sp] & 1;
-                (cpu->flags).p = (mem[cpu->sp] >> 2) & 1;
-                (cpu->flags).ac = (mem[cpu->sp] >> 4) & 1;
-                (cpu->flags).z = (mem[cpu->sp] >> 6) & 1;
-                (cpu->flags).s = (mem[cpu->sp] >> 7) & 1;
-                cpu->sp += 2;
+                POPPSW(cpu)
                 break;
 
             case 0xf2: // JP D16
@@ -932,11 +949,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xf5: // PUSH PSW
-                mem[cpu->sp-1] = cpu->a;
-                aux = 0x01;
-                aux = aux | (cpu->flags).c | ((cpu->flags).p << 2) | ((cpu->flags).ac << 4);
-                aux = aux | ((cpu->flags).z << 6) | ((cpu->flags).s << 7);
-                cpu->sp += -2;
+                PUSHPSW(cpu)
                 break;
 
             case 0xf6: // ORI D8

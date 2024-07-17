@@ -69,7 +69,8 @@ void run_invaders() {
         while (j < EXECRATE) {
             j++; // printf("%d\t", j);
             emulate_cpu8080(&cpu, 1);
-            if (cpu.pc == 0x0a5e && !(cpu.flags).z) {
+//            if (cpu.pc == 0x0a5e && !(cpu.flags).z) {
+            if (cpu.pc == 0xffff) {
                 uint16_t pc = cpu.pc;
                 printf("Prev PC at breakpoint: %04x\n", cpu.lastpc);
                 step = 1;
