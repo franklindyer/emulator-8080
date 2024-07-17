@@ -370,6 +370,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0x2f: // CMA
+                cpu->a = ~cpu->a;
+                break;
+
             case 0x31: // LXI SP D16
                 cpu->sp = (mem[pc+2] << 8) | mem[pc+1];
                 cpu->pc += 2;
@@ -543,6 +547,39 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 ADD(cpu,cpu->a)
                 break; 
 
+            case 0x90: // SUB B
+                SUB(cpu,cpu->a,cpu->b)
+                break;
+
+            case 0x91: // SUB C
+                SUB(cpu,cpu->a,cpu->c)
+                break;
+
+            case 0x92: // SUB D
+                SUB(cpu,cpu->a,cpu->d)
+                break;
+
+            case 0x93: // SUB E
+                SUB(cpu,cpu->a,cpu->e)
+                break;
+
+            case 0x94: // SUB H
+                SUB(cpu,cpu->a,cpu->h)
+                break;
+
+            case 0x95: // SUB L
+                SUB(cpu,cpu->a,cpu->l)
+                break;
+
+            case 0x96: // SUB M
+                aux = (cpu->h << 8) | cpu->l;
+                SUB(cpu,cpu->a,mem[aux])
+                break;
+
+            case 0x97: // SUB A
+                SUB(cpu,cpu->a,cpu->a)
+                break;
+
             case 0xa0: // ANA B
                 ANA(cpu,cpu->b)
                 break;
@@ -702,9 +739,8 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xc1: // POP BC
-                cpu->b = mem[cpu->sp+1];
-                cpu->c = mem[cpu->sp];
-                cpu->sp += 2;
+                POPBYTE(cpu,cpu->c)
+                POPBYTE(cpu,cpu->b)
                 break;
 
             case 0xc2: // JNZ D16
@@ -722,9 +758,8 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xc5: // PUSH BC
-                mem[cpu->sp-1] = cpu->b;
-                mem[cpu->sp-2] = cpu->c;
-                cpu->sp += -2;
+                PUSHBYTE(cpu,cpu->b)
+                PUSHBYTE(cpu,cpu->c)
                 break;
 
             case 0xc6: // ADI D8
@@ -774,9 +809,8 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xd1: // POP DE
-                cpu->d = mem[cpu->sp+1];
-                cpu->e = mem[cpu->sp];
-                cpu->sp += 2;
+                POPBYTE(cpu,cpu->e)
+                POPBYTE(cpu,cpu->d)
                 break;
 
             case 0xd2: // JNC D16
@@ -795,9 +829,8 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xd5: // PUSH DE
-                mem[cpu->sp-1] = cpu->d;
-                mem[cpu->sp-2] = cpu->e;
-                cpu->sp += -2;
+                PUSHBYTE(cpu,cpu->d)
+                PUSHBYTE(cpu,cpu->e)
                 break;
 
             case 0xd6: // SUI D8
@@ -851,9 +884,8 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xe1: // POP HL
-                cpu->h = mem[cpu->sp+1];
-                cpu->l = mem[cpu->sp];
-                cpu->sp += 2;
+                POPBYTE(cpu,cpu->l)
+                POPBYTE(cpu,cpu->h)
                 break;
 
             case 0xe2: // JPO D16
@@ -875,9 +907,8 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xe5: // PUSH HL
-                mem[cpu->sp-1] = cpu->h;
-                mem[cpu->sp-2] = cpu->l;
-                cpu->sp += -2;
+                PUSHBYTE(cpu,cpu->h)
+                PUSHBYTE(cpu,cpu->l)
                 break;
 
             case 0xe6: // ANI D8
