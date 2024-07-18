@@ -62,17 +62,19 @@ void run_invaders() {
 
     int i = 0;
     int j = 0;
+    long k = 0;
     int inttype = 0;
     int step = 0;
     while(1) {
         j = 0;
         while (j < EXECRATE) {
-            j++; // printf("%d\t", j);
+            j++; k++; // printf("%d\t", j);
             emulate_cpu8080(&cpu, 1);
-//            if (cpu.pc == 0x0a5e && !(cpu.flags).z) {
+//            if ((cpu.pc == 0x015a1) && (k >= 1228998600)) {
             if (cpu.pc == 0xffff) {
                 uint16_t pc = cpu.pc;
-                printf("Prev PC at breakpoint: %04x\n", cpu.lastpc);
+                printf("INITIAL DY FOR REF ALIEN IS: %02x\n", cpu.memory[0x2007]);
+                printf("Counter is: %ld\n", k);
                 step = 1;
             }
             if (step) {

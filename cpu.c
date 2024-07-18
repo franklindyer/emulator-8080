@@ -5,6 +5,7 @@
     r += 1; \
     SETZSP(cpu->flags,r)
 #define DCR(cpu,r) \
+    (cpu->flags).c = (r == 0); \
     r += -1; \
     (cpu->flags).z = (r == 0); \
     (cpu->flags).s = r >> 7; \
@@ -69,9 +70,9 @@
 
 #define PUSHPSW(cpu) \
     mem[cpu->sp-1] = cpu->a; \
-    aux = 0x01; \
-    aux = aux | (cpu->flags).c | ((cpu->flags).p << 2) | ((cpu->flags).ac << 4); \
-    aux = aux | ((cpu->flags).z << 6) | ((cpu->flags).s << 7); \
+    aux = 0x00; \
+    aux = aux | ((cpu->flags).c & 1) | (((cpu->flags).p & 1) << 2) | (((cpu->flags).ac & 1) << 4); \
+    aux = aux | (((cpu->flags).z & 1) << 6) | (((cpu->flags).s & 1) << 7); \
     mem[cpu->sp-2] = aux & 0xff; \
     cpu->sp += -2;
 #define POPPSW(cpu) \
