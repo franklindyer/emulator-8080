@@ -109,6 +109,8 @@ typedef struct cpu8080 {
     uint16_t pc;
     uint16_t sp;
     flags8080 flags;
+    uint8_t in[8];
+    void (*handle_io)(uint8_t port, uint8_t outbyte, uint8_t *cpuin);
     uint8_t* memory;
     long ticks; // For debugging only
 } cpu8080;
@@ -819,7 +821,8 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xd3: // OUT
-                // UNIMPLEMENTED FOR NOW
+                (* cpu->handle_io)(mem[pc+1], cpu->a, cpu->in);
+                // if (mem[pc+1] >= 0 && mem[pc+1] <= 7) cpu->out[mem[pc+1]] = cpu->a;
                 cpu->pc += 1;
                 break;
 
@@ -856,7 +859,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xdb: // IN
-                // UNIMPLEMENTED FOR NOW
+//                if (mem[pc+1] >= 0 && mem[pc+1] <= 7) cpu->a = cpu->in[mem[pc+1]];
                 cpu->pc += 1;
                 break;
 

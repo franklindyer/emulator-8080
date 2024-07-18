@@ -9,6 +9,8 @@
 
 #define EXECRATE 999999
 
+uint16_t shift_register = 0;
+
 typedef struct space_invaders_display {
     SDL_Window* window;
     SDL_Surface* window_surface;
@@ -40,23 +42,45 @@ void destroy_space_invaders_display(space_invaders_display* disp) {
     SDL_Quit();
 }
 
+void handle_space_invaders_io(uint8_t port, uint8_t outbyte, uint8_t *inpins) {
+    if (port == 2) {
+        int shift = outbyte & 0x7;
+        inpins[3] = (shift_register >> (8-shift)) & 0xff;
+    }
+    if (port == 4) {
+        shift_register = ((uint16_t)outbyte << 8) | (shift_register >> 8);
+    }
+}
+
 void handle_space_invaders_events(cpu8080* cpu, space_invaders_display* display) {
     SDL_Event e;
     update_space_invaders_display(display);
+    const Uint8 *state = SDL_GetKeyboardState(NULL);
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_MOUSEBUTTONDOWN) printf("Clicky clicky!\n");
+        if (e.type == SDL_KEYDOWN) {
+            if (e.key.keysym.sym == SDLK_c) {
+                printf("COIN INSERTED!\n");
+                cpu->in[1] |= 0x1;
+            }
+        }
     }
 }
 
 void run_invaders() {
     unsigned char* mainmem = malloc(1 << 16); 
-    cpu8080 cpu = {}; 
+
+    cpu8080 cpu = {0}; 
     cpu.memory = mainmem;
+    cpu.handle_io = &handle_space_invaders_io;
 
     int fd = open("./data/invaders", O_RDONLY);
     int size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem, size);
+
+    cpu.in[0] = 0x0e;
+    cpu.in[1] = 0x07;
 
     space_invaders_display display = init_space_invaders_display(&mainmem[0x2400]);
 
@@ -70,7 +94,6 @@ void run_invaders() {
         while (j < EXECRATE) {
             j++; k++; // printf("%d\t", j);
             emulate_cpu8080(&cpu, 1);
-//            if ((cpu.pc == 0x015a1) && (k >= 1228998600)) {
             if (cpu.pc == 0xffff) {
                 uint16_t pc = cpu.pc;
                 printf("INITIAL DY FOR REF ALIEN IS: %02x\n", cpu.memory[0x2007]);
