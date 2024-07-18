@@ -106,12 +106,11 @@ typedef struct cpu8080 {
     uint8_t h;
     uint8_t l;
     uint8_t bus;
-    uint16_t lastpc;
     uint16_t pc;
     uint16_t sp;
     flags8080 flags;
     uint8_t* memory;
-    long ticks;
+    long ticks; // For debugging only
 } cpu8080;
 
 void print_cpu_state(cpu8080* cpu) {
@@ -1030,6 +1029,5 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             default: unimplemented_op(cpu, *op);
 
         }
-        cpu->lastpc = pc;
     }
 }
