@@ -111,7 +111,7 @@ int disassemble8080(unsigned char *codebuf, int pc) {
             { printf("J%s\t0x%02x%02x", CCC((c >> 3) & 0x7), instr[2], instr[1]); len = 3; }
         else if ((c & 0xc7) == 0xc4)
             { printf("C%s\t0x%02x%02x", CCC((c >> 3) & 0x7), instr[2], instr[1]); len = 3; }
-        else if ((c & 0xc0) == 0xc0)
+        else if ((c & 0xc7) == 0xc0)
             { printf("R%s\t0x%02x%02x", CCC((c >> 3) & 0x7), instr[2], instr[1]); len = 3; }
         else if ((c & 0xc7) == 0xc7) printf("RST\t%d", (c >> 3) & 0x7);
 
@@ -121,6 +121,10 @@ int disassemble8080(unsigned char *codebuf, int pc) {
 
         else printf("NOP");
     }
+
+    if (len == 1) printf("\t0x%02x", instr[0]);
+    if (len == 2) printf("\t0x%02x%02x", instr[0], instr[1]);
+    if (len == 3) printf("\t0x%02x%02x%02x", instr[0], instr[1], instr[2]);
 
     printf("\n");
     return len;
