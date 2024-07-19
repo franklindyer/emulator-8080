@@ -90,7 +90,6 @@ void handle_space_invaders_events(cpu8080* cpu, space_invaders_display* display)
         if (e.type == SDL_KEYUP) {
             KEYS[e.key.keysym.sym] = 0;
             if (e.key.keysym.sym == SDLK_c) {
-                printf("COIN INSERTED!\n");
                 coin_in = 1;
             }
         }

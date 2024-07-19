@@ -15,6 +15,10 @@
     cpu->a = cpu->a + r; \
     SETZSP(cpu->flags,cpu->a) \
     (cpu->flags).c = cpu->a < r;
+#define ADC(cpu,r) \
+    cpu->a = cpu->a + r + ((cpu->flags).c & 1); \
+    SETZSP(cpu->flags,cpu->a) \
+    (cpu->flags).c = cpu->a < r + ((cpu->flags).c & 1);
 #define SUB(cpu,a,r) \
     (cpu->flags).z = (a == r); \
     (cpu->flags).c = (a < r); \
@@ -340,8 +344,8 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0x27: // DAA
-                if ((cpu->flags).ac || (cpu->a & 0xf) > 9) cpu->a += 6;
-                if ((cpu->flags).c || (cpu->a >> 4) > 9) cpu->a += 6 << 4;
+                if ((cpu->flags).ac || (cpu->a & 0xf) > 9) { ADD(cpu,0x6) }
+                if ((cpu->flags).c || (cpu->a >> 4) > 9) { ADD(cpu,0x60) }
                 SETZSP(cpu->flags,cpu->a)
                 break;
 
@@ -554,6 +558,39 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x87: // ADD A
                 ADD(cpu,cpu->a)
                 break; 
+
+            case 0x88: // ADC B
+                ADC(cpu,cpu->b)
+                break;
+
+            case 0x89: // ADC C
+                ADC(cpu,cpu->c)
+                break;
+
+            case 0x8a: // ADC D
+                ADC(cpu,cpu->d)
+                break;
+
+            case 0x8b: // ADC E
+                ADC(cpu,cpu->e)
+                break;
+
+            case 0x8c: // ADC H
+                ADC(cpu,cpu->h)
+                break;
+
+            case 0x8d: // ADC L
+                ADC(cpu,cpu->l)
+                break;
+
+            case 0x8e: // ADC M
+                aux = (cpu->h << 8) | cpu->l;
+                ADC(cpu,mem[aux])
+                break;
+
+            case 0x8f: // ADC A
+                ADC(cpu,cpu->a)
+                break;
 
             case 0x90: // SUB B
                 SUB(cpu,cpu->a,cpu->b)
