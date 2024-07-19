@@ -13,6 +13,7 @@
 int coin_in = 0;
 uint8_t shift_amount = 0;
 uint16_t shift_register = 0;
+char KEYS[322] = {0};
 
 typedef struct space_invaders_display {
     SDL_Window* window;
@@ -46,8 +47,20 @@ void destroy_space_invaders_display(space_invaders_display* disp) {
 }
 
 uint8_t handle_space_invaders_in(uint8_t port) {
+    if (port == 0) {
+        uint8_t val = 0xe;
+        if (KEYS[SDLK_w]) val |= 1 << 4;
+        if (KEYS[SDLK_a]) val |= 1 << 5;
+        if (KEYS[SDLK_d]) val |= 1 << 6;
+        return val;
+    }
     if (port == 1) {
         uint8_t val = (uint8_t)coin_in;
+        if (KEYS[SDLK_1]) val |= 1 << 2;
+        if (KEYS[SDLK_2]) val |= 1 << 1;
+        if (KEYS[SDLK_w]) val |= 1 << 4;
+        if (KEYS[SDLK_a]) val |= 1 << 5;
+        if (KEYS[SDLK_d]) val |= 1 << 6;
         coin_in = 0;
         return val;
     }
@@ -72,6 +85,10 @@ void handle_space_invaders_events(cpu8080* cpu, space_invaders_display* display)
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_MOUSEBUTTONDOWN) printf("Clicky clicky!\n");
         if (e.type == SDL_KEYDOWN) {
+            KEYS[e.key.keysym.sym] = 1;
+        }
+        if (e.type == SDL_KEYUP) {
+            KEYS[e.key.keysym.sym] = 0;
             if (e.key.keysym.sym == SDLK_c) {
                 printf("COIN INSERTED!\n");
                 coin_in = 1;
