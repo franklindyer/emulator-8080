@@ -67,6 +67,7 @@ uint8_t handle_space_invaders_in(uint8_t port) {
     if (port == 3) {
         return (shift_register >> (8-shift_amount)) & 0xff;
     }
+    return 0;
 }
 
 void handle_space_invaders_out(uint8_t port, uint8_t outbyte) {

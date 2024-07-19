@@ -174,6 +174,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x02: // STAX BC
+                aux = (cpu->b << 8) | cpu->c;
+                mem[aux] = cpu->a;
+                break;
+
             case 0x03: // INX BC
                 aux = (cpu->b << 8) | cpu->c;
                 aux++;
@@ -206,6 +211,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = aux >> 8;
                 cpu->l = aux & 0xff;
                 (cpu->flags).c = aux2 > aux;
+                break;
+
+            case 0x12: // STAX DE
+                aux = (cpu->d << 8) | cpu->e;
+                mem[aux] = cpu->a;
                 break;
 
             case 0x0a: // LDAX BC
