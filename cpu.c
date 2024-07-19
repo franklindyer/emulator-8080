@@ -339,6 +339,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0x27: // DAA
+                if ((cpu->flags).ac || (cpu->a & 0xf) > 9) cpu->a += 6;
+                if ((cpu->flags).c || (cpu->a >> 4) > 9) cpu->a += 6 << 4;
+                SETZSP(cpu->flags,cpu->a)
+                break;
+
             case 0x29: // DAD HL
                 (cpu->flags).c = cpu->h >> 7;
                 cpu->h = (cpu->h << 1) | (cpu->l >> 7);
