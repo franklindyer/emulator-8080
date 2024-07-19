@@ -9,6 +9,9 @@
 
 #define EXECRATE 999999
 
+// All this state external to the CPU should eventually be refactored
+int coin_in = 0;
+uint8_t shift_amount = 0;
 uint16_t shift_register = 0;
 
 typedef struct space_invaders_display {
@@ -42,13 +45,23 @@ void destroy_space_invaders_display(space_invaders_display* disp) {
     SDL_Quit();
 }
 
-void handle_space_invaders_io(uint8_t port, uint8_t outbyte, uint8_t *inpins) {
+uint8_t handle_space_invaders_in(uint8_t port) {
+    if (port == 1) {
+        uint8_t val = (uint8_t)coin_in;
+        coin_in = 0;
+        return val;
+    }
+    if (port == 3) {
+        return (shift_register >> (8-shift_amount)) & 0xff;
+    }
+}
+
+void handle_space_invaders_out(uint8_t port, uint8_t outbyte) {
     if (port == 2) {
-        int shift = outbyte & 0x7;
-        inpins[3] = (shift_register >> (8-shift)) & 0xff;
+        shift_amount = outbyte & 0x7;
     }
     if (port == 4) {
-        shift_register = ((uint16_t)outbyte << 8) | (shift_register >> 8);
+        shift_register = (outbyte << 8) | ((shift_register >> 8) & 0xff);
     }
 }
 
@@ -61,7 +74,7 @@ void handle_space_invaders_events(cpu8080* cpu, space_invaders_display* display)
         if (e.type == SDL_KEYDOWN) {
             if (e.key.keysym.sym == SDLK_c) {
                 printf("COIN INSERTED!\n");
-                cpu->in[1] |= 0x1;
+                coin_in = 1;
             }
         }
     }
@@ -72,15 +85,13 @@ void run_invaders() {
 
     cpu8080 cpu = {0}; 
     cpu.memory = mainmem;
-    cpu.handle_io = &handle_space_invaders_io;
+    cpu.handle_in = &handle_space_invaders_in;
+    cpu.handle_out = &handle_space_invaders_out;
 
     int fd = open("./data/invaders", O_RDONLY);
     int size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem, size);
-
-    cpu.in[0] = 0x0e;
-    cpu.in[1] = 0x07;
 
     space_invaders_display display = init_space_invaders_display(&mainmem[0x2400]);
 
@@ -96,7 +107,6 @@ void run_invaders() {
             emulate_cpu8080(&cpu, 1);
             if (cpu.pc == 0xffff) {
                 uint16_t pc = cpu.pc;
-                printf("INITIAL DY FOR REF ALIEN IS: %02x\n", cpu.memory[0x2007]);
                 printf("Counter is: %ld\n", k);
                 step = 1;
             }
