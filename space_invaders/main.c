@@ -25,10 +25,20 @@ typedef struct space_invaders_display {
 space_invaders_display init_space_invaders_display(unsigned char* vidmem) {
     space_invaders_display disp = {};
     SDL_Init(SDL_INIT_VIDEO);
-    disp.window = SDL_CreateWindow("Window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 224*2, 256*2, SDL_WINDOW_SHOWN);
+    disp.window = SDL_CreateWindow(
+        "Window", 
+        SDL_WINDOWPOS_CENTERED, 
+        SDL_WINDOWPOS_CENTERED, 
+        224*2, 256*2, 
+        SDL_WINDOW_SHOWN
+    );
 
     disp.window_surface = SDL_GetWindowSurface(disp.window);
-    disp.image_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 224*2, 256*2, 32, 0xff << 24, 0xff << 16, 0xff << 8, 0xff);
+    disp.image_surface = SDL_CreateRGBSurface(
+        SDL_SWSURFACE, 
+        224*2, 256*2, 32, 
+        0xff << 24, 0xff << 16, 0xff << 8, 0xff
+    );
     disp.bitmap = vidmem;
 
     return disp;
@@ -84,15 +94,18 @@ void handle_space_invaders_events(cpu8080* cpu, space_invaders_display* display)
     update_space_invaders_display(display);
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_MOUSEBUTTONDOWN) printf("Clicky clicky!\n");
-        if (e.type == SDL_KEYDOWN) {
+        if (e.type == SDL_KEYDOWN && e.key.keysym.sym < 322) {
             KEYS[e.key.keysym.sym] = 1;
         }
-        if (e.type == SDL_KEYUP) {
+        if (e.type == SDL_KEYUP && e.key.keysym.sym < 322) {
             KEYS[e.key.keysym.sym] = 0;
             if (e.key.keysym.sym == SDLK_c) {
                 coin_in = 1;
             }
+        }
+        if (e.type == SDL_QUIT) {
+            printf("Exiting Space Invaders game...\n");
+            exit(0);
         }
     }
 }
@@ -112,6 +125,8 @@ void run_invaders() {
 
     space_invaders_display display = init_space_invaders_display(&mainmem[0x2400]);
 
+    printf("Starting Space Invaders game...\n");
+
     int i = 0;
     int j = 0;
     long k = 0;
@@ -120,7 +135,7 @@ void run_invaders() {
     while(1) {
         j = 0;
         while (j < EXECRATE) {
-            j++; k++; // printf("%d\t", j);
+            j++; k++;
             emulate_cpu8080(&cpu, 1);
             if (cpu.pc == 0xffff) {
                 uint16_t pc = cpu.pc;
@@ -135,13 +150,11 @@ void run_invaders() {
         }
         
         if (cpu.flags.ei) {    
-        handle_space_invaders_events(&cpu, &display);
-        // usleep(8333);
-        update_space_invaders_display(&display);
-        cpu.flags.i = 1;
-        inttype = 1 - inttype;
-        cpu.bus = inttype ? 0xcf : 0xd7;
-        // usleep(1000000);
+            handle_space_invaders_events(&cpu, &display);
+            update_space_invaders_display(&display);
+            cpu.flags.i = 1;
+            inttype = 1 - inttype;
+            cpu.bus = inttype ? 0xcf : 0xd7;
         }
     }
 
