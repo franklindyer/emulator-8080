@@ -14,6 +14,7 @@ int coin_in = 0;
 uint8_t shift_amount = 0;
 uint16_t shift_register = 0;
 char KEYS[322] = {0};
+uint8_t dipswitch = 0; // Bits 0,1 control number of lives, bit 2 controls extra life, bit 3 controls coin info
 
 typedef struct space_invaders_display {
     SDL_Window* window;
@@ -66,6 +67,7 @@ uint8_t handle_space_invaders_in(uint8_t port) {
     }
     if (port == 1) {
         uint8_t val = (uint8_t)coin_in;
+        val |= 0x8;
         if (KEYS[SDLK_1]) val |= 1 << 2;
         if (KEYS[SDLK_2]) val |= 1 << 1;
         if (KEYS[SDLK_w]) val |= 1 << 4;
@@ -73,6 +75,15 @@ uint8_t handle_space_invaders_in(uint8_t port) {
         if (KEYS[SDLK_d]) val |= 1 << 6;
         coin_in = 0;
         return val;
+    }
+    if (port == 2) {
+        uint8_t val = 0xe;
+        val |= dipswitch & 3;
+        val |= (dipswitch << 1) & 8;
+        val |= (dipswitch & 8) << 4;
+        if (KEYS[SDLK_w]) val |= 1 << 4;
+        if (KEYS[SDLK_a]) val |= 1 << 5;
+        if (KEYS[SDLK_d]) val |= 1 << 6;
     }
     if (port == 3) {
         return (shift_register >> (8-shift_amount)) & 0xff;
@@ -133,7 +144,8 @@ void run_invaders() {
     int inttype = 0;
     int step = 0;
     while(1) {
-        j = 0;
+        // FOR DEBUGGING ONLY
+        /* j = 0;
         while (j < EXECRATE) {
             j++; k++;
             emulate_cpu8080(&cpu, 1);
@@ -147,7 +159,8 @@ void run_invaders() {
                 update_space_invaders_display(&display);
                 if (getchar() == 'c') step = 0;
             }
-        }
+        } */
+        emulate_cpu8080(&cpu, EXECRATE);
         
         if (cpu.flags.ei) {    
             handle_space_invaders_events(&cpu, &display);
