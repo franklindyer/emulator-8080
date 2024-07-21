@@ -462,6 +462,10 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 1;
                 break;
 
+            case 0x3f: // CMC
+                (cpu->flags).c = !(cpu->flags).c;
+                break;
+
             MOVCASE(0x40,cpu->b,cpu->b) // MOV B B
             MOVCASE(0x41,cpu->b,cpu->c) // MOV B C
             MOVCASE(0x42,cpu->b,cpu->d) // MOV B D
