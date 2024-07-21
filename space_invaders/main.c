@@ -5,7 +5,8 @@
 #include <SDL2/SDL.h>
 
 #include "cpu.c"
-#include "screen_drawing.c"
+#include "display.c"
+#include "space_invader_sounds.c"
 
 #define EXECRATE 999999
 
@@ -15,47 +16,7 @@ uint8_t shift_amount = 0;
 uint16_t shift_register = 0;
 char KEYS[322] = {0};
 uint8_t dipswitch = 0; // Bits 0,1 control number of lives, bit 2 controls extra life, bit 3 controls coin info
-
-typedef struct space_invaders_display {
-    SDL_Window* window;
-    SDL_Surface* window_surface;
-    SDL_Surface* image_surface;
-    unsigned char* bitmap;
-} space_invaders_display;
-
-space_invaders_display init_space_invaders_display(unsigned char* vidmem) {
-    space_invaders_display disp = {};
-    SDL_Init(SDL_INIT_VIDEO);
-    disp.window = SDL_CreateWindow(
-        "Window", 
-        SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED, 
-        224*2, 256*2, 
-        SDL_WINDOW_SHOWN
-    );
-
-    disp.window_surface = SDL_GetWindowSurface(disp.window);
-    disp.image_surface = SDL_CreateRGBSurface(
-        SDL_SWSURFACE, 
-        224*2, 256*2, 32, 
-        0xff << 24, 0xff << 16, 0xff << 8, 0xff
-    );
-    disp.bitmap = vidmem;
-
-    return disp;
-}
-
-void update_space_invaders_display(space_invaders_display* disp) {
-    int i;
-    draw_pixel_screen_rotated(disp->image_surface, disp->bitmap, 224, 256);
-    SDL_BlitSurface(disp->image_surface, NULL, disp->window_surface, NULL);
-    SDL_UpdateWindowSurface(disp->window);
-}
-
-void destroy_space_invaders_display(space_invaders_display* disp) {
-    SDL_DestroyWindow(disp->window);
-    SDL_Quit();
-}
+uint8_t port_state[8] = {0};
 
 uint8_t handle_space_invaders_in(uint8_t port) {
     if (port == 0) {
@@ -95,8 +56,30 @@ void handle_space_invaders_out(uint8_t port, uint8_t outbyte) {
     if (port == 2) {
         shift_amount = outbyte & 0x7;
     }
+    if (port == 3 && outbyte != port_state[3]) {
+        if ((outbyte & 1) && !(port_state[3] & 1))
+            play_sound(5);
+        if ((outbyte & 2) && !(port_state[3] & 2))
+            play_sound(0);
+        if ((outbyte & 4) && !(port_state[3] & 4))
+            play_sound(2);
+        if ((outbyte & 8) && !(port_state[3] & 8))
+            play_sound(1);
+        port_state[3] = outbyte;
+    }
     if (port == 4) {
         shift_register = (outbyte << 8) | ((shift_register >> 8) & 0xff);
+    }
+    if (port == 5) {
+        if ((outbyte & 1) && !(port_state[5] & 1))
+            play_sound(3);
+        if ((outbyte & 2) && !(port_state[5] & 2))
+            play_sound(4);
+        if ((outbyte & 4) && !(port_state[5] & 4))
+            play_sound(3);
+        if ((outbyte & 8) && !(port_state[5] & 8))
+            play_sound(4);
+        port_state[5] = outbyte;
     }
 }
 
