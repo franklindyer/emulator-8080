@@ -112,7 +112,7 @@ void run_invaders() {
     cpu.handle_in = &handle_space_invaders_in;
     cpu.handle_out = &handle_space_invaders_out;
 
-    int fd = open("./data/invaders", O_RDONLY);
+    int fd = open("./space_invaders/invaders", O_RDONLY);
     int size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem, size);
