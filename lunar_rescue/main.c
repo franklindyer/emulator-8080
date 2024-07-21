@@ -9,6 +9,9 @@
 
 #define EXECRATE 999999
 
+int coin_in = 0;
+uint8_t shift_amount = 0;
+uint16_t shift_register = 0;
 int KEYS[322];
 
 void load_game_into_memory(unsigned char* mainmem) {
@@ -59,6 +62,7 @@ void handle_lunar_rescue_events(cpu8080* cpu, lunar_rescue_display* display) {
         }
         if (e.type == SDL_KEYUP && e.key.keysym.sym < 322) {
             KEYS[e.key.keysym.sym] = 0;
+            if (e.key.keysym.sym == SDLK_c) coin_in = 1;
         }
         if (e.type == SDL_QUIT) {
             printf("Exiting Lunar Rescue game...\n");
@@ -67,10 +71,42 @@ void handle_lunar_rescue_events(cpu8080* cpu, lunar_rescue_display* display) {
     }
 }
 
+// PORT 1, BIT 0 -> Coin inserted
+// PORT 1, BIT 2 -> Play 1-player
+// PORT 1, BIT 3 -> Play 2-player
+// PORT 1, BIT 4 -> Open carrier door, shoot
+// PORT 1, BIT 5 -> Move left
+// PORT 1, BIT 6 -> Move right
+// PORT 2, BIT 2 -> TILT pin
+// PORT 3        -> Hardware shift register input
+uint8_t foo = 0xff;
+uint8_t handle_lunar_rescue_in(uint8_t port) {
+    // if (port == 2) return 0xfb;
+    if (port == 1) {
+        uint8_t val = (uint8_t)coin_in;
+        if (KEYS[SDLK_1]) val |= 1 << 2;
+        if (KEYS[SDLK_2]) val |= 1 << 3;
+        if (KEYS[SDLK_w]) val |= 1 << 4;
+        if (KEYS[SDLK_a]) val |= 1 << 5;
+        if (KEYS[SDLK_d]) val |= 1 << 6;
+        coin_in = 0;
+        return val;
+    }
+    if (port == 2) return 0x00; // 0xfb
+    if (port == 3) {
+        return (shift_register >> (8-shift_amount)) & 0xff;
+    }
+    return 0; 
+}
 
-
-uint8_t handle_lunar_rescue_in(uint8_t port) { return 0; }
-void handle_lunar_rescue_out(uint8_t port, uint8_t outbyte) { return; }
+void handle_lunar_rescue_out(uint8_t port, uint8_t outbyte) {
+    if (port == 2) {
+        shift_amount = outbyte & 0x7;
+    }
+    if (port == 4) {
+        shift_register = (outbyte << 8) | ((shift_register >> 8) & 0xff);
+    }
+}
 
 void run_lrescue() {
     unsigned char* mainmem = malloc(1 << 16); 

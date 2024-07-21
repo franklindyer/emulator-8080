@@ -280,6 +280,18 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 (cpu->flags).c = (aux >> 7) & 1;
                 break;
 
+            case 0x18: // NOP
+                break;
+            
+            case 0x19: // DAD DE
+                aux = (cpu->h << 8) | cpu->l;
+                aux2 = aux;
+                aux += (cpu->d << 8) | cpu->e;
+                cpu->h = aux >> 8;
+                cpu->l = aux & 0xff;
+                (cpu->flags).c = aux2 > aux;
+                break;
+
             case 0x1a: // LDAX DE
                 aux = (cpu->d << 8) | cpu->e;
                 cpu->a = mem[aux];
@@ -303,15 +315,6 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x1e: // MVI E D8
                 cpu->e = mem[pc+1];
                 cpu->pc += 1;
-                break;
-
-            case 0x19: // DAD DE
-                aux = (cpu->h << 8) | cpu->l;
-                aux2 = aux;
-                aux += (cpu->d << 8) | cpu->e;
-                cpu->h = aux >> 8;
-                cpu->l = aux & 0xff;
-                (cpu->flags).c = aux2 > aux;
                 break;
 
             case 0x1f: // RAR
@@ -856,7 +859,13 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0xcd: // CALL D16
                 CALL(cpu)
                 break;
-           
+          
+            case 0xce: // ACI D8
+                ADC(cpu,mem[pc+1])
+                cpu->pc += 1;
+                break;
+
+ 
             case 0xcf: // RST 1
                 RST(cpu,1)
                 break;
