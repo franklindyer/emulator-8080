@@ -136,7 +136,7 @@ void print_cpu_state(cpu8080* cpu) {
     if ((cpu->flags).p) printf("parity ");
     if ((cpu->flags).c) printf("carry ");
     if ((cpu->flags).ac) printf("auxcarry ");
-    printf("\n");
+    printf("\nNEXT COMMAND: 0x%02x\n", cpu->memory[cpu->pc]);
 }
 
 void unimplemented_op(cpu8080* cpu, unsigned char opcode) {
