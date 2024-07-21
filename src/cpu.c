@@ -15,6 +15,10 @@
     cpu->a = cpu->a + r; \
     SETZSP(cpu->flags,cpu->a) \
     (cpu->flags).c = cpu->a < r;
+#define ADC(cpu,r) \
+    cpu->a = cpu->a + r + ((cpu->flags).c & 1); \
+    SETZSP(cpu->flags,cpu->a) \
+    (cpu->flags).c = cpu->a < r + ((cpu->flags).c & 1);
 #define SUB(cpu,a,r) \
     (cpu->flags).z = (a == r); \
     (cpu->flags).c = (a < r); \
@@ -109,6 +113,8 @@ typedef struct cpu8080 {
     uint16_t pc;
     uint16_t sp;
     flags8080 flags;
+    uint8_t (*handle_in)(uint8_t port);
+    void (*handle_out)(uint8_t port, uint8_t outbyte);
     uint8_t* memory;
     long ticks; // For debugging only
 } cpu8080;
@@ -168,6 +174,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->pc += 2;
                 break;
 
+            case 0x02: // STAX BC
+                aux = (cpu->b << 8) | cpu->c;
+                mem[aux] = cpu->a;
+                break;
+
             case 0x03: // INX BC
                 aux = (cpu->b << 8) | cpu->c;
                 aux++;
@@ -200,6 +211,11 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 cpu->h = aux >> 8;
                 cpu->l = aux & 0xff;
                 (cpu->flags).c = aux2 > aux;
+                break;
+
+            case 0x12: // STAX DE
+                aux = (cpu->d << 8) | cpu->e;
+                mem[aux] = cpu->a;
                 break;
 
             case 0x0a: // LDAX BC
@@ -335,6 +351,12 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x26: // MVI H D8
                 cpu->h = mem[pc+1];
                 cpu->pc += 1;
+                break;
+
+            case 0x27: // DAA
+                if ((cpu->flags).ac || (cpu->a & 0xf) > 9) { ADD(cpu,0x6) }
+                if ((cpu->flags).c || (cpu->a >> 4) > 9) { ADD(cpu,0x60) }
+                SETZSP(cpu->flags,cpu->a)
                 break;
 
             case 0x29: // DAD HL
@@ -546,6 +568,39 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0x87: // ADD A
                 ADD(cpu,cpu->a)
                 break; 
+
+            case 0x88: // ADC B
+                ADC(cpu,cpu->b)
+                break;
+
+            case 0x89: // ADC C
+                ADC(cpu,cpu->c)
+                break;
+
+            case 0x8a: // ADC D
+                ADC(cpu,cpu->d)
+                break;
+
+            case 0x8b: // ADC E
+                ADC(cpu,cpu->e)
+                break;
+
+            case 0x8c: // ADC H
+                ADC(cpu,cpu->h)
+                break;
+
+            case 0x8d: // ADC L
+                ADC(cpu,cpu->l)
+                break;
+
+            case 0x8e: // ADC M
+                aux = (cpu->h << 8) | cpu->l;
+                ADC(cpu,mem[aux])
+                break;
+
+            case 0x8f: // ADC A
+                ADC(cpu,cpu->a)
+                break;
 
             case 0x90: // SUB B
                 SUB(cpu,cpu->a,cpu->b)
@@ -819,7 +874,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xd3: // OUT
-                // UNIMPLEMENTED FOR NOW
+                (* cpu->handle_out)(mem[pc+1], cpu->a);
                 cpu->pc += 1;
                 break;
 
@@ -856,7 +911,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xdb: // IN
-                // UNIMPLEMENTED FOR NOW
+                cpu->a = (* cpu->handle_in)(mem[pc+1]);
                 cpu->pc += 1;
                 break;
 
