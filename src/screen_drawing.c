@@ -33,12 +33,15 @@ void draw_pixel_screen(SDL_Surface* screen, unsigned char* bitmap, int r, int c)
 void draw_pixel_screen_rotated(SDL_Surface* screen, unsigned char* bitmap, int r, int c) {
     int pix_w = screen->w / r;
     int pix_h = screen->h / c;
-    int fill = 0;
+    int fill, fill_r, fill_g, fill_b;
     SDL_Rect rect = {0, screen->h - pix_h, pix_w, pix_h};
     for (int i = 0; i < r*c; i++) {
         int rem = i % 8;
-        fill = 255 * ((bitmap[i/8] & (1 << rem)) >> rem); fill = 255 - fill;
-        SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill, fill, fill));
+        fill = ((bitmap[i/8] & (1 << rem)) >> rem);
+        fill_r = (255 * rect.x * fill) / screen->w;
+        fill_g = (255 * rect.y * fill) / screen->h;
+        fill_b = (255 * (screen->w - rect.x) * fill) / screen->w;
+        SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill_r, fill_g, fill_b));
         rect.y += -pix_h;
         if (rect.y < 0) {
             rect.y = screen->h - pix_h;
