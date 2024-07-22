@@ -72,12 +72,15 @@ void handle_lunar_rescue_events(cpu8080* cpu, lunar_rescue_display* display) {
 }
 
 // PORT 1, BIT 0 -> Coin inserted
+// PORT 1, BIT 1 -> Play 2-player
 // PORT 1, BIT 2 -> Play 1-player
-// PORT 1, BIT 3 -> Play 2-player
 // PORT 1, BIT 4 -> Open carrier door, shoot
 // PORT 1, BIT 5 -> Move left
 // PORT 1, BIT 6 -> Move right
 // PORT 2, BIT 2 -> TILT pin
+// PORT 2, BIT 4 -> Open carrier door, shoot (P2)
+// PORT 2, BIT 5 -> Move left (P2)
+// PORT 2, BIT 6 -> Move right (P2)
 // PORT 3        -> Hardware shift register input
 uint8_t foo = 0xff;
 uint8_t handle_lunar_rescue_in(uint8_t port) {
@@ -85,14 +88,22 @@ uint8_t handle_lunar_rescue_in(uint8_t port) {
     if (port == 1) {
         uint8_t val = (uint8_t)coin_in;
         if (KEYS[SDLK_1]) val |= 1 << 2;
-        if (KEYS[SDLK_2]) val |= 1 << 3;
+        if (KEYS[SDLK_2]) val |= 1 << 1;
         if (KEYS[SDLK_w]) val |= 1 << 4;
         if (KEYS[SDLK_a]) val |= 1 << 5;
         if (KEYS[SDLK_d]) val |= 1 << 6;
+        if (KEYS[SDLK_7]) val |= 1 << 7;
+        if (KEYS[SDLK_3]) val |= 1 << 3;
         coin_in = 0;
         return val;
     }
-    if (port == 2) return 0x00; // 0xfb
+    if (port == 2) {
+        uint8_t val = 0;
+        if (KEYS[SDLK_w]) val |= 1 << 4;
+        if (KEYS[SDLK_a]) val |= 1 << 5;
+        if (KEYS[SDLK_d]) val |= 1 << 6;
+        return val;
+    }
     if (port == 3) {
         return (shift_register >> (8-shift_amount)) & 0xff;
     }
