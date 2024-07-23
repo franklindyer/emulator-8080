@@ -47,3 +47,37 @@ void draw_pixel_screen_rotated(
         }
     }
 }
+
+typedef struct arcade_display {
+    SDL_Window* window;
+    SDL_Surface* window_surface;
+    SDL_Surface* image_surface;
+    unsigned char* bitmap;
+} arcade_display;
+
+arcade_display init_arcade_display(unsigned char* vidmem, int w, int h, int pixsize) {
+    arcade_display disp = {};
+    SDL_Init(SDL_INIT_VIDEO);
+    disp.window = SDL_CreateWindow(
+        "Window",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        w*pixsize, h*pixsize,
+        SDL_WINDOW_SHOWN
+    );
+
+    disp.window_surface = SDL_GetWindowSurface(disp.window);
+    disp.image_surface = SDL_CreateRGBSurface(
+        SDL_SWSURFACE,
+        w*pixsize, h*pixsize, 32,
+        0xff << 24, 0xff << 16, 0xff << 8, 0xff
+    );
+    disp.bitmap = vidmem;
+
+    return disp;
+}
+
+void destroy_arcade_display(arcade_display* disp) {
+    SDL_DestroyWindow(disp->window);
+    SDL_Quit();
+}
