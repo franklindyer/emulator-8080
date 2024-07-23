@@ -6,44 +6,35 @@
 
 #include "screen_drawing.c"
 
-typedef struct lunar_rescue_display {
-    SDL_Window* window;
-    SDL_Surface* window_surface;
-    SDL_Surface* image_surface;
-    unsigned char* bitmap;
-} lunar_rescue_display;
-
-lunar_rescue_display init_lunar_rescue_display(unsigned char* vidmem) {
-    lunar_rescue_display disp = {};
-    SDL_Init(SDL_INIT_VIDEO);
-    disp.window = SDL_CreateWindow(
-        "Window", 
-        SDL_WINDOWPOS_CENTERED, 
-        SDL_WINDOWPOS_CENTERED, 
-        224*2, 256*2, 
-        SDL_WINDOW_SHOWN
-    );
-
-    disp.window_surface = SDL_GetWindowSurface(disp.window);
-    disp.image_surface = SDL_CreateRGBSurface(
-        SDL_SWSURFACE, 
-        224*2, 256*2, 32, 
-        0xff << 24, 0xff << 16, 0xff << 8, 0xff
-    );
-    disp.bitmap = vidmem;
-
-    return disp;
+rgb_pixel lunar_rescue_color_map(int x, int y, int on) {
+    int r, g, b;
+    if (y/2 >= (256 - 12)) {
+        r = 0; g = 255 * on; b = 0;
+    } else if (y/2 >= (256 - 28)) {
+        r = (255 * ((256-12) - y/2) * on) / 16;
+        g = 255 * on;
+        b = 0; 
+    } else if (y/2 >= (256 - 36)) { 
+        r = 255 * on;
+        g = (255 * (y/2 - (256-36)) * on) / 8;
+        b = (255 * ((256-28) - y/2) * on) / 8;
+    } else if (y/2 >= (256 - 44)) {
+        r = (255 * (y/2 - (256-44)) * on) / 8;
+        g = (255 * ((256-36) - y/2) * on) / 8;
+        b = 255 * on;
+    } else {
+        r = 0;
+        g = (255 * (y/2 - (256 - 44)) * on) / 220;
+        b = 255 * on;
+    }
+    rgb_pixel pix = { r, g, b };
+    return pix;
 }
 
-void update_lunar_rescue_display(lunar_rescue_display* disp) {
+void update_lunar_rescue_display(arcade_display* disp) {
     int i;
-    draw_pixel_screen_rotated(disp->image_surface, disp->bitmap, 224, 256);
+    draw_pixel_screen_rotated(disp->image_surface, disp->bitmap, 224, 256, &lunar_rescue_color_map);
     SDL_BlitSurface(disp->image_surface, NULL, disp->window_surface, NULL);
     SDL_UpdateWindowSurface(disp->window);
-}
-
-void destroy_lunar_rescue_display(lunar_rescue_display* disp) {
-    SDL_DestroyWindow(disp->window);
-    SDL_Quit();
 }
 

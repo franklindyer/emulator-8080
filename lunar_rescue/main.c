@@ -7,7 +7,7 @@
 #include "cpu.c"
 #include "display.c"
 
-#define EXECRATE 999999
+#define EXECRATE 9999
 
 int coin_in = 0;
 uint8_t shift_amount = 0;
@@ -52,7 +52,7 @@ void load_game_into_memory(unsigned char* mainmem) {
     close(fd);
 }
 
-void handle_lunar_rescue_events(cpu8080* cpu, lunar_rescue_display* display) {
+void handle_lunar_rescue_events(cpu8080* cpu, arcade_display* display) {
     SDL_Event e;
     update_lunar_rescue_display(display);
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -129,7 +129,7 @@ void run_lrescue() {
 
     load_game_into_memory(mainmem);
 
-    lunar_rescue_display display = init_lunar_rescue_display(&mainmem[0x2400]);
+    arcade_display display = init_arcade_display(&mainmem[0x2400], 224, 256, 2);
 
     printf("Starting Lunar Rescue game...\n");
     fflush(stdout);
@@ -164,11 +164,12 @@ void run_lrescue() {
             inttype = 1 - inttype;
             cpu.bus = inttype ? 0xcf : 0xd7;
         }
+        usleep(2000);
     }
 
     print_cpu_state(&cpu);
 
-    destroy_lunar_rescue_display(&display);
+    destroy_arcade_display(&display);
 }
 
 int main() {
