@@ -16,6 +16,8 @@ uint16_t shift_register = 0;
 char KEYS[322] = {0};
 uint8_t dipswitch = 0; // Bits 0,1 control number of lives, bit 2 controls extra life, bit 3 controls coin info
 uint8_t port_state[8] = {0};
+uint8_t left_cowboy_arm = 0x0;
+uint8_t right_cowboy_arm = 0x0;
 
 // PORT 0 -> 8 bits of left cowboy data
 // PORT 1 -> 8 bits of right cowboy data
@@ -23,6 +25,44 @@ uint8_t port_state[8] = {0};
 // PORT 2, BIT 6    -> Coin inserted
 // PORT 3 -> Hardware shift register output
 uint8_t handle_gunfight_in(uint8_t port) {
+    if (port == 0) {
+        uint8_t val = 0x0;
+        switch(left_cowboy_arm) {
+            case 0: val = 3 << 4; break;
+            case 1: val = 7 << 4; break;
+            case 2: val = 5 << 4; break;
+            case 3: val = 1 << 4; break;
+            case 4: val = 4 << 4; break;
+            case 5: val = 6 << 4; break;
+            case 6: val = 2 << 4; break;
+            default: break;
+        }
+        if (KEYS[SDLK_w]) val |= 1 << 0;
+        if (KEYS[SDLK_s]) val |= 1 << 1;
+        if (KEYS[SDLK_a]) val |= 1 << 2;
+        if (KEYS[SDLK_d]) val |= 1 << 3;
+        if (KEYS[SDLK_q]) val |= 1 << 7;
+        return val;
+    }
+    if (port == 1) {
+        uint8_t val = 0x0;
+        switch(right_cowboy_arm) {
+            case 0: val = 3 << 4; break;
+            case 1: val = 7 << 4; break;
+            case 2: val = 5 << 4; break;
+            case 3: val = 1 << 4; break;
+            case 4: val = 4 << 4; break;
+            case 5: val = 6 << 4; break;
+            case 6: val = 2 << 4; break;
+            default: break;
+        }
+        if (KEYS[SDLK_i]) val |= 1 << 0;
+        if (KEYS[SDLK_k]) val |= 1 << 1;
+        if (KEYS[SDLK_j]) val |= 1 << 2;
+        if (KEYS[SDLK_l]) val |= 1 << 3;
+        if (KEYS[SDLK_u]) val |= 1 << 7;
+        return val;
+    }
     if (port == 2) {
         uint8_t val = 0x0;
         if (coin_in) {
@@ -81,6 +121,8 @@ void handle_gunfight_events(cpu8080* cpu, gunfight_display* display) {
             if (e.key.keysym.sym == SDLK_c) {
                 coin_in = 2;
             }
+            if (e.key.keysym.sym == SDLK_e) left_cowboy_arm = (left_cowboy_arm + 1) % 7;
+            if (e.key.keysym.sym == SDLK_o) right_cowboy_arm = (right_cowboy_arm + 1) % 7;
         }
         if (e.type == SDL_QUIT) {
             printf("Exiting Gunfight game...\n");
