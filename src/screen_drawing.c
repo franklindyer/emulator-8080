@@ -1,27 +1,24 @@
 #include <SDL2/SDL.h>
 
-void draw_pixel_row(SDL_Surface* screen, unsigned char* bitmap, int n, int r) {
-    int pix_w = screen->w / n;
-    int pix_h = screen->h / n;
-    int fill = 0;
-    SDL_Rect rect = {0, r*pix_h, pix_w, pix_h};
-    for (int i = 0; i < n; i++) {
-        int rem = (7 - i % 8);
-        fill = 255 * ((bitmap[i/8] & (1 << rem)) >> rem); fill = 255 - fill;
-        SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill, fill, fill)); 
-        rect.x += pix_w;
-    }
-}
+typedef struct rgb_pixel {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+} rgb_pixel;
 
-void draw_pixel_screen(SDL_Surface* screen, unsigned char* bitmap, int r, int c) {
+void draw_pixel_screen(
+        SDL_Surface* screen, 
+        unsigned char* bitmap, 
+        int r, int c,
+        rgb_pixel (*color_map)(int x, int y, int on)) {
     int pix_w = screen->w / c;
     int pix_h = screen->h / r;
-    int fill = 0;
+    rgb_pixel fill;
     SDL_Rect rect = {0, 0, pix_w, pix_h};
     for (int i = 0; i < r*c; i++) {
         int rem = (7 - i % 8);
-        fill = 255 * ((bitmap[i/8] & (1 << rem)) >> rem); fill = 255 - fill;
-        SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill, fill, fill));
+        fill = (*color_map)(rect.x, rect.y, (bitmap[i/8] & (1 << rem)) >> rem);
+        SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill.r, fill.g, fill.b));
         rect.x += pix_w;
         if (rect.x >= screen->w) {
             rect.x = 0;
@@ -30,22 +27,57 @@ void draw_pixel_screen(SDL_Surface* screen, unsigned char* bitmap, int r, int c)
     }
 }
 
-void draw_pixel_screen_rotated(SDL_Surface* screen, unsigned char* bitmap, int r, int c) {
+void draw_pixel_screen_rotated(
+        SDL_Surface* screen, 
+        unsigned char* bitmap, 
+        int r, int c,
+        rgb_pixel (*color_map)(int x, int y, int on)) {
     int pix_w = screen->w / r;
     int pix_h = screen->h / c;
-    int fill, fill_r, fill_g, fill_b;
+    rgb_pixel fill;
     SDL_Rect rect = {0, screen->h - pix_h, pix_w, pix_h};
     for (int i = 0; i < r*c; i++) {
         int rem = i % 8;
-        fill = ((bitmap[i/8] & (1 << rem)) >> rem);
-        fill_r = (255 * rect.x * fill) / screen->w;
-        fill_g = (255 * rect.y * fill) / screen->h;
-        fill_b = (255 * (screen->w - rect.x) * fill) / screen->w;
-        SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill_r, fill_g, fill_b));
+        fill = (*color_map)(rect.x, rect.y, (bitmap[i/8] & (1 << rem)) >> rem);
+        SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill.r, fill.g, fill.b));
         rect.y += -pix_h;
         if (rect.y < 0) {
             rect.y = screen->h - pix_h;
             rect.x += pix_w;
         }
     }
+}
+
+typedef struct arcade_display {
+    SDL_Window* window;
+    SDL_Surface* window_surface;
+    SDL_Surface* image_surface;
+    unsigned char* bitmap;
+} arcade_display;
+
+arcade_display init_arcade_display(unsigned char* vidmem, int w, int h, int pixsize) {
+    arcade_display disp = {};
+    SDL_Init(SDL_INIT_VIDEO);
+    disp.window = SDL_CreateWindow(
+        "Window",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        w*pixsize, h*pixsize,
+        SDL_WINDOW_SHOWN
+    );
+
+    disp.window_surface = SDL_GetWindowSurface(disp.window);
+    disp.image_surface = SDL_CreateRGBSurface(
+        SDL_SWSURFACE,
+        w*pixsize, h*pixsize, 32,
+        0xff << 24, 0xff << 16, 0xff << 8, 0xff
+    );
+    disp.bitmap = vidmem;
+
+    return disp;
+}
+
+void destroy_arcade_display(arcade_display* disp) {
+    SDL_DestroyWindow(disp->window);
+    SDL_Quit();
 }
