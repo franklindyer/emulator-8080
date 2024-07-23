@@ -17,33 +17,19 @@ char KEYS[322] = {0};
 uint8_t dipswitch = 0; // Bits 0,1 control number of lives, bit 2 controls extra life, bit 3 controls coin info
 uint8_t port_state[8] = {0};
 
+// PORT 0 -> 8 bits of left cowboy data
+// PORT 1 -> 8 bits of right cowboy data
+// PORT 2 -> Dipswitches and coin detection
+// PORT 2, BIT 6    -> Coin inserted
+// PORT 3 -> Hardware shift register output
 uint8_t handle_gunfight_in(uint8_t port) {
-    if (port == 0) {
-        uint8_t val = 0xe;
-        if (KEYS[SDLK_w]) val |= 1 << 4;
-        if (KEYS[SDLK_a]) val |= 1 << 5;
-        if (KEYS[SDLK_d]) val |= 1 << 6;
-        return val;
-    }
-    if (port == 1) {
-        uint8_t val = (uint8_t)coin_in;
-        val |= 0x8;
-        if (KEYS[SDLK_1]) val |= 1 << 2;
-        if (KEYS[SDLK_2]) val |= 1 << 1;
-        if (KEYS[SDLK_w]) val |= 1 << 4;
-        if (KEYS[SDLK_a]) val |= 1 << 5;
-        if (KEYS[SDLK_d]) val |= 1 << 6;
-        coin_in = 0;
-        return val;
-    }
     if (port == 2) {
-        uint8_t val = 0xe;
-        val |= dipswitch & 3;
-        val |= (dipswitch << 1) & 8;
-        val |= (dipswitch & 8) << 4;
-        if (KEYS[SDLK_w]) val |= 1 << 4;
-        if (KEYS[SDLK_a]) val |= 1 << 5;
-        if (KEYS[SDLK_d]) val |= 1 << 6;
+        uint8_t val = 0x0;
+        if (coin_in) {
+            coin_in += -1;
+            val |= 1 << 6;
+        }
+        return val;
     }
     if (port == 3) {
         return (shift_register >> (8-shift_amount)) & 0xff;
@@ -93,7 +79,7 @@ void handle_gunfight_events(cpu8080* cpu, gunfight_display* display) {
         if (e.type == SDL_KEYUP && e.key.keysym.sym < 322) {
             KEYS[e.key.keysym.sym] = 0;
             if (e.key.keysym.sym == SDLK_c) {
-                coin_in = 1;
+                coin_in = 2;
             }
         }
         if (e.type == SDL_QUIT) {

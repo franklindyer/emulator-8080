@@ -20,14 +20,14 @@ gunfight_display init_gunfight_display(unsigned char* vidmem) {
         "Window", 
         SDL_WINDOWPOS_CENTERED, 
         SDL_WINDOWPOS_CENTERED, 
-        224*2, 256*2, 
+        256*2, 224*2, 
         SDL_WINDOW_SHOWN
     );
 
     disp.window_surface = SDL_GetWindowSurface(disp.window);
     disp.image_surface = SDL_CreateRGBSurface(
         SDL_SWSURFACE, 
-        224*2, 256*2, 32, 
+        256*2, 224*2, 32, 
         0xff << 24, 0xff << 16, 0xff << 8, 0xff
     );
     disp.bitmap = vidmem;
@@ -37,7 +37,7 @@ gunfight_display init_gunfight_display(unsigned char* vidmem) {
 
 void update_gunfight_display(gunfight_display* disp) {
     int i;
-    draw_pixel_screen_rotated(disp->image_surface, disp->bitmap, 224, 256);
+    draw_pixel_screen(disp->image_surface, disp->bitmap, 256, 224);
     SDL_BlitSurface(disp->image_surface, NULL, disp->window_surface, NULL);
     SDL_UpdateWindowSurface(disp->window);
 }
