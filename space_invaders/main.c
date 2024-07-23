@@ -83,7 +83,7 @@ void handle_space_invaders_out(uint8_t port, uint8_t outbyte) {
     }
 }
 
-void handle_space_invaders_events(cpu8080* cpu, space_invaders_display* display) {
+void handle_space_invaders_events(cpu8080* cpu, arcade_display* display) {
     SDL_Event e;
     update_space_invaders_display(display);
     const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -117,7 +117,7 @@ void run_invaders() {
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem, size);
 
-    space_invaders_display display = init_space_invaders_display(&mainmem[0x2400]);
+    arcade_display display = init_arcade_display(&mainmem[0x2400], 224, 256, 2);
 
     printf("Starting Space Invaders game...\n");
 
@@ -127,22 +127,6 @@ void run_invaders() {
     int inttype = 0;
     int step = 0;
     while(1) {
-        // FOR DEBUGGING ONLY
-        /* j = 0;
-        while (j < EXECRATE) {
-            j++; k++;
-            emulate_cpu8080(&cpu, 1);
-            if (cpu.pc == 0xffff) {
-                uint16_t pc = cpu.pc;
-                printf("Counter is: %ld\n", k);
-                step = 1;
-            }
-            if (step) {
-                print_cpu_state(&cpu); 
-                update_space_invaders_display(&display);
-                if (getchar() == 'c') step = 0;
-            }
-        } */
         emulate_cpu8080(&cpu, EXECRATE);
         
         if (cpu.flags.ei) {    
@@ -156,7 +140,7 @@ void run_invaders() {
 
     print_cpu_state(&cpu);
 
-    destroy_space_invaders_display(&display);
+    destroy_arcade_display(&display);
 }
 
 int main() {
