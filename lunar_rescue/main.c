@@ -6,46 +6,48 @@
 
 #include "cpu.c"
 #include "display.c"
+#include "lunar_rescue_sounds.c"
 
 #define EXECRATE 9999
 
 int coin_in = 0;
 uint8_t shift_amount = 0;
 uint16_t shift_register = 0;
+uint8_t port_state[8];
 int KEYS[322];
 
 void load_game_into_memory(unsigned char* mainmem) {
-    int fd = open("./lunar_rescue/lrescue.1", O_RDONLY);
+    int fd = open("./lunar_rescue/rom/lrescue.1", O_RDONLY);
     int size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem, size);
     close(fd);
 
-    fd = open("./lunar_rescue/lrescue.2", O_RDONLY);
+    fd = open("./lunar_rescue/rom/lrescue.2", O_RDONLY);
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem+0x800, size);
     close(fd);
 
-    fd = open("./lunar_rescue/lrescue.3", O_RDONLY);
+    fd = open("./lunar_rescue/rom/lrescue.3", O_RDONLY);
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem+0x1000, size);
     close(fd);
 
-    fd = open("./lunar_rescue/lrescue.4", O_RDONLY);
+    fd = open("./lunar_rescue/rom/lrescue.4", O_RDONLY);
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem+0x1800, size);
     close(fd);
 
-    fd = open("./lunar_rescue/lrescue.5", O_RDONLY);
+    fd = open("./lunar_rescue/rom/lrescue.5", O_RDONLY);
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem+0x4000, size);
     close(fd);
 
-    fd = open("./lunar_rescue/lrescue.6", O_RDONLY);
+    fd = open("./lunar_rescue/rom/lrescue.6", O_RDONLY);
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem+0x4800, size);
@@ -114,8 +116,27 @@ void handle_lunar_rescue_out(uint8_t port, uint8_t outbyte) {
     if (port == 2) {
         shift_amount = outbyte & 0x7;
     }
+    if (port == 3) {
+        if ((outbyte & 1) && !(port_state[3] & 1))
+            play_sound(2);
+        if ((outbyte & 2) && !(port_state[3] & 2))
+            play_sound(0);
+        if ((outbyte & 4) && !(port_state[3] & 4))
+            play_sound(3);
+        if ((outbyte & 8) && !(port_state[3] & 8))
+            play_sound(1);
+        port_state[3] = outbyte;
+    }
     if (port == 4) {
         shift_register = (outbyte << 8) | ((shift_register >> 8) & 0xff);
+    }
+    if (port == 5) {
+        if ((outbyte & 1) && !(port_state[5] & 1))
+            play_sound(5);
+        if ((outbyte & 2) && !(port_state[5] & 2))
+            play_sound(4);
+        
+        port_state[5] = outbyte;
     }
 }
 
