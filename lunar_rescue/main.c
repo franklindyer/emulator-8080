@@ -17,7 +17,7 @@ uint8_t port_state[8];
 int KEYS[322];
 
 void load_game_into_memory(unsigned char* mainmem) {
-    int fd = open("./lunar_rescue/rom/lrescue.1", O_RDONLY);
+    /* int fd = open("./lunar_rescue/rom/lrescue.1", O_RDONLY);
     int size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem, size);
@@ -51,6 +51,16 @@ void load_game_into_memory(unsigned char* mainmem) {
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem+0x4800, size);
+    close(fd);
+
+    fd = open("./lunar_rescue/rom/lrescue", O_RDWR | O_CREAT);
+    write(fd, mainmem, 0x5000);
+    close(fd); */
+
+    int fd = open("./lunar_rescue/rom/lrescue", O_RDONLY);
+    int size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+    read(fd, mainmem, size);
     close(fd);
 }
 
@@ -171,7 +181,8 @@ void run_lrescue() {
                 step = 1;
             }
             if (step) {
-                print_cpu_state(&cpu); 
+                print_cpu_state(&cpu);
+                printf("CONTENTS OF 0x21a2: 0x%02x\n", cpu.memory[0x21a2]); 
                 update_lunar_rescue_display(&display);
                 if (getchar() == 'c') step = 0;
             }

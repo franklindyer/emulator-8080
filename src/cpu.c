@@ -5,13 +5,13 @@
     r += 1; \
     SETZSP(cpu->flags,r)
 #define DCR(cpu,r) \
-    (cpu->flags).c = (r == 0); \
     r += -1; \
     (cpu->flags).z = (r == 0); \
     (cpu->flags).s = r >> 7; \
     SETPARITY((cpu->flags).p, r) \
     (cpu->flags).ac = (r & 0xf) == 0xf;
 #define ADD(cpu,r) \
+    (cpu->flags).ac = (((cpu->a & 0xf) + (r & 0xf)) & 0x10) != 0; \
     cpu->a = cpu->a + r; \
     SETZSP(cpu->flags,cpu->a) \
     (cpu->flags).c = cpu->a < r;
