@@ -11,12 +11,12 @@ void draw_pixel_screen(
         unsigned char* bitmap, 
         int r, int c,
         rgb_pixel (*color_map)(int x, int y, int on)) {
-    int pix_w = screen->w / c;
-    int pix_h = screen->h / r;
+    int pix_w = screen->w / r;
+    int pix_h = screen->h / c;
     rgb_pixel fill;
     SDL_Rect rect = {0, 0, pix_w, pix_h};
     for (int i = 0; i < r*c; i++) {
-        int rem = (7 - i % 8);
+        int rem = i % 8; // (7 - i % 8);
         fill = (*color_map)(rect.x, rect.y, (bitmap[i/8] & (1 << rem)) >> rem);
         SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, fill.r, fill.g, fill.b));
         rect.x += pix_w;

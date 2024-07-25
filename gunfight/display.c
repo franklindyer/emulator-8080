@@ -35,9 +35,14 @@ gunfight_display init_gunfight_display(unsigned char* vidmem) {
     return disp;
 }
 
+rgb_pixel gunfight_color_map(int x, int y, int on) {
+    rgb_pixel pix = { 255*on, 255*on, 0 };
+    return pix;
+}
+
 void update_gunfight_display(gunfight_display* disp) {
     int i;
-    draw_pixel_screen(disp->image_surface, disp->bitmap, 256, 224);
+    draw_pixel_screen(disp->image_surface, disp->bitmap, 256, 224, &gunfight_color_map);
     SDL_BlitSurface(disp->image_surface, NULL, disp->window_surface, NULL);
     SDL_UpdateWindowSurface(disp->window);
 }

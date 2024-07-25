@@ -16,15 +16,14 @@
     SETZSP(cpu->flags,cpu->a) \
     (cpu->flags).c = cpu->a < r;
 #define ADC(cpu,r) \
+    (cpu->flags).ac = (((cpu->a & 0xf) + (r & 0xf)) & 0x10) != 0; \
     cpu->a = cpu->a + r + ((cpu->flags).c & 1); \
     SETZSP(cpu->flags,cpu->a) \
     (cpu->flags).c = cpu->a < r + ((cpu->flags).c & 1);
 #define SUB(cpu,a,r) \
-    (cpu->flags).z = (a == r); \
     (cpu->flags).c = (a < r); \
     a = a - r; \
-    (cpu->flags).s = (a & 0x80) >> 7; \
-    SETPARITY((cpu->flags).p, a)
+    SETZSP(cpu->flags,cpu->a)
 #define ANA(cpu,r) \
     cpu->a = cpu->a & r; \
     SETZSP(cpu->flags,cpu->a) \
