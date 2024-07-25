@@ -159,7 +159,7 @@ void run_invaders() {
         while (j < EXECRATE) {
             j++; k++;
             emulate_cpu8080(&cpu, 1);
-            if (cpu.pc == 0xffff) {
+            if (0) {
                 uint16_t pc = cpu.pc;
                 printf("Counter is: %ld\n", k);
                 step = 1;

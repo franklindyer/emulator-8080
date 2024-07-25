@@ -21,9 +21,10 @@
     SETZSP(cpu->flags,cpu->a) \
     (cpu->flags).c = cpu->a < r + ((cpu->flags).c & 1);
 #define SUB(cpu,a,r) \
+    (cpu->flags).ac = (((a & 0xf) + ((1+~r) & 0xf)) & 0x10) != 0; \
     (cpu->flags).c = (a < r); \
     a = a - r; \
-    SETZSP(cpu->flags,cpu->a)
+    SETZSP(cpu->flags,a)
 #define ANA(cpu,r) \
     cpu->a = cpu->a & r; \
     SETZSP(cpu->flags,cpu->a) \
@@ -824,12 +825,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
                 break;
 
             case 0xc6: // ADI D8
-                aux = cpu->a;
-                aux += mem[pc+1];
-                cpu->a = aux;
-                SETZSP(cpu->flags,cpu->a)
-                (cpu->flags).c = (aux >> 8) & 1;
-                // AC flag not implemented
+                ADD(cpu,mem[pc+1])
                 cpu->pc += 1;
                 break;
 
