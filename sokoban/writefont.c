@@ -176,7 +176,7 @@ int main() {
     for (i = 0x30; i <= 0x39; i++) {
         for (j = 0; j < 8; j++) {
             c = reverse(font8x8_basic[i][j]);
-            write(fd, &c, 8);
+            write(fd, &c, 1);
         }
     }
     close(fd);

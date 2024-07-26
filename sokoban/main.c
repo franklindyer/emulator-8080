@@ -47,6 +47,12 @@ void load_sokoban_rom(unsigned char* mainmem) {
     read(fd, mainmem+0x40, size);
     close(fd); 
     
+    fd = open("./sokoban/rom/sokoban-variables", O_RDONLY);
+    size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+    read(fd, mainmem+0x1d00, size);
+    close(fd); 
+    
     fd = open("./sokoban/rom/sokoban-sprites", O_RDONLY);
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
