@@ -156,14 +156,28 @@ char font8x8_basic[128][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}    // U+007F
 };
 
+unsigned char reverse(unsigned char b) {
+   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+   return b;
+}
+
 int main() {
     int fd = open("sokoban-sprites", O_RDWR | O_CREAT);
-    int i;
+    int i, j;
+    unsigned char c;
     for (i = 0x41; i <= 0x5a; i++) {
-        write(fd, font8x8_basic[i], 8);
+        for (j = 0; j < 8; j++) {
+            c = reverse(font8x8_basic[i][j]);
+            write(fd, &c, 1);
+        }
     }
     for (i = 0x30; i <= 0x39; i++) {
-        write(fd, font8x8_basic[i], 8);
+        for (j = 0; j < 8; j++) {
+            c = reverse(font8x8_basic[i][j]);
+            write(fd, &c, 8);
+        }
     }
     close(fd);
 }

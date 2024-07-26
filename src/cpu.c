@@ -158,8 +158,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
         if (cpu->flags.i) {
             op = &cpu->bus;
             cpu->flags.i = 0;
-        }
-        else {
+        } else {
             op = &cpu->memory[cpu->pc];
             cpu->pc++;
         }

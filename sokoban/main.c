@@ -35,8 +35,14 @@ void handle_sokoban_events(cpu8080* cpu, arcade_display* display) {
 }
 
 void load_sokoban_rom(unsigned char* mainmem) {
-    int fd = open("./sokoban/rom/sokoban-code", O_RDONLY);
+    int fd = open("./sokoban/rom/sokoban-isrs", O_RDONLY);
     int size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+    read(fd, mainmem, size);
+    close(fd); 
+    
+    fd = open("./sokoban/rom/sokoban-code", O_RDONLY);
+    size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     read(fd, mainmem+0x40, size);
     close(fd); 
@@ -68,8 +74,8 @@ void run_sokoban() {
     int j = 0;
     long k = 0;
     int inttype = 0;
-    int step = 1;
-    while(k < 100) {
+    int step = 0;
+    while(1) {
         k++;
         j = 0;
         while (j < EXECRATE) {
