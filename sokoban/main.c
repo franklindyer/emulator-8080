@@ -72,7 +72,7 @@ void run_sokoban() {
 
     load_sokoban_rom(mainmem);
 
-    arcade_display display = init_arcade_display(&mainmem[0x3000], 256, 256, 2);
+    arcade_display display = init_arcade_display(&mainmem[0x3000], 256, 256, 3);
 
     printf("Starting Sokoban game...\n");
 
