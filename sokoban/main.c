@@ -7,7 +7,7 @@
 #include "cpu.c"
 #include "display.c"
 
-#define EXECRATE 2000
+#define EXECRATE 20
 
 char KEYS[322] = {0};
 
