@@ -93,7 +93,7 @@ void run_sokoban() {
         while (j < EXECRATE) {
             j++;
             emulate_cpu8080(&cpu, 1);
-            if (0) {
+            if (cpu.pc == 0x0170) {
                 uint16_t pc = cpu.pc;
                 printf("Counter is: %ld\n", k);
                 step = 1;
