@@ -7,12 +7,22 @@
 #include "cpu.c"
 #include "display.c"
 
-#define EXECRATE 1000
+#define EXECRATE 100000
 
 char KEYS[322] = {0};
 uint8_t clk = 0;
+uint8_t port_in_state[8];
 
 uint8_t handle_sokoban_in(uint8_t port) { 
+    if (port == 0) {
+        uint8_t keymap = KEYS[SDLK_w] | (KEYS[SDLK_s] << 1) | (KEYS[SDLK_a] << 2) | (KEYS[SDLK_d] << 3);
+        KEYS[SDLK_w] = 0;
+        KEYS[SDLK_a] = 0;
+        KEYS[SDLK_s] = 0;
+        KEYS[SDLK_d] = 0;
+        if (keymap != 0) printf("KEYMAP: %02x\n", keymap);
+        return keymap;
+    }
     if (port == 1) return clk;
     return 0;
 }
@@ -24,11 +34,11 @@ void handle_sokoban_events(cpu8080* cpu, arcade_display* display) {
     update_sokoban_display(display);
     const Uint8 *state = SDL_GetKeyboardState(NULL);
     while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_KEYDOWN && e.key.keysym.sym < 322) {
-            KEYS[e.key.keysym.sym] = 1;
-        }
+//        if (e.type == SDL_KEYDOWN && e.key.keysym.sym < 322) {
+//            KEYS[e.key.keysym.sym] = 1;
+//        }
         if (e.type == SDL_KEYUP && e.key.keysym.sym < 322) {
-            KEYS[e.key.keysym.sym] = 0;
+            KEYS[e.key.keysym.sym] = 1;
             printf("KEY UP!\n");
         }
         if (e.type == SDL_QUIT) {
@@ -97,7 +107,7 @@ void run_sokoban() {
         while (j < EXECRATE) {
             j++;
             emulate_cpu8080(&cpu, 1);
-            if (cpu.pc == 0x0010) {
+            if (cpu.pc == 0xffff) {
                 uint16_t pc = cpu.pc;
                 printf("Counter is: %ld\n", k);
                 step = 1;
@@ -117,7 +127,7 @@ void run_sokoban() {
             cpu.flags.i = 1;
             inttype = 1 - inttype;
             // cpu.bus = inttype ? 0xcf : 0xd7;
-            cpu.bus = 0x00;
+            cpu.bus = 0xcf;
         }
     }
 
