@@ -7,11 +7,15 @@
 #include "cpu.c"
 #include "display.c"
 
-#define EXECRATE 20
+#define EXECRATE 1000
 
 char KEYS[322] = {0};
+uint8_t clk = 0;
 
-uint8_t handle_sokoban_in(uint8_t port) {}
+uint8_t handle_sokoban_in(uint8_t port) { 
+    if (port == 1) return clk;
+    return 0;
+}
 
 void handle_sokoban_out(uint8_t port, uint8_t outbyte) {}
 
@@ -93,7 +97,7 @@ void run_sokoban() {
         while (j < EXECRATE) {
             j++;
             emulate_cpu8080(&cpu, 1);
-            if (cpu.pc == 0x0170) {
+            if (cpu.pc == 0x0010) {
                 uint16_t pc = cpu.pc;
                 printf("Counter is: %ld\n", k);
                 step = 1;
@@ -106,6 +110,7 @@ void run_sokoban() {
         }
         // emulate_cpu8080(&cpu, EXECRATE);
         
+        clk++;
         if (cpu.flags.ei) {
             update_sokoban_display(&display); 
             handle_sokoban_events(&cpu, &display);
