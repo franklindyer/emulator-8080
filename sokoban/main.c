@@ -6,6 +6,7 @@
 
 #include "cpu.c"
 #include "display.c"
+#include "sokoban_sounds.c"
 
 #define EXECRATE 100000
 
@@ -27,7 +28,13 @@ uint8_t handle_sokoban_in(uint8_t port) {
     return 0;
 }
 
-void handle_sokoban_out(uint8_t port, uint8_t outbyte) {}
+void handle_sokoban_out(uint8_t port, uint8_t outbyte) {
+    if (port == 1) {
+        if (outbyte & 2) play_sound(0);         // NOPE
+        else if (outbyte & 4) play_sound(1);    // CRATE PUSH
+        else if (outbyte & 1) play_sound(2);    // WALKING
+    }
+}
 
 void handle_sokoban_events(cpu8080* cpu, arcade_display* display) {
     SDL_Event e;
