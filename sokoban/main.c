@@ -37,7 +37,7 @@ void handle_sokoban_events(cpu8080* cpu, arcade_display* display) {
 //        if (e.type == SDL_KEYDOWN && e.key.keysym.sym < 322) {
 //            KEYS[e.key.keysym.sym] = 1;
 //        }
-        if (e.type == SDL_KEYUP && e.key.keysym.sym < 322) {
+        if (e.type == SDL_KEYDOWN && e.key.keysym.sym < 322) {
             KEYS[e.key.keysym.sym] = 1;
             printf("KEY UP!\n");
         }
@@ -126,8 +126,8 @@ void run_sokoban() {
             handle_sokoban_events(&cpu, &display);
             cpu.flags.i = 1;
             inttype = 1 - inttype;
-            // cpu.bus = inttype ? 0xcf : 0xd7;
             cpu.bus = 0xcf;
+            // cpu.bus = 0x00;
         }
     }
 
