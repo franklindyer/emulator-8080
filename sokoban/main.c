@@ -21,7 +21,6 @@ uint8_t handle_sokoban_in(uint8_t port) {
         KEYS[SDLK_a] = 0;
         KEYS[SDLK_s] = 0;
         KEYS[SDLK_d] = 0;
-        if (keymap != 0) printf("KEYMAP: %02x\n", keymap);
         return keymap;
     }
     if (port == 1) return clk;
@@ -46,7 +45,6 @@ void handle_sokoban_events(cpu8080* cpu, arcade_display* display) {
 //        }
         if (e.type == SDL_KEYDOWN && e.key.keysym.sym < 322) {
             KEYS[e.key.keysym.sym] = 1;
-            printf("KEY UP!\n");
         }
         if (e.type == SDL_QUIT) {
             printf("Exiting Sokoban game...\n");

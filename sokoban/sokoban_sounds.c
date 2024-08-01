@@ -13,7 +13,7 @@ void play_sound(int sound_code) {
             system("afplay ./sokoban/sounds/no-movement.mp3 &");
             break;
         case PUSH_SOUND:
-            system("afplay ./sokoban/sounds/box-moved.mp3 &");
+            system("afplay ./sokoban/sounds/box-slide.wav &");
             break;
         case STEP_SOUND:
             system("afplay ./sokoban/sounds/footsteps.m4a &");
