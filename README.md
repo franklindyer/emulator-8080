@@ -26,3 +26,5 @@ Credit where credit is due:
 - [Intel 8080 user's manual](http://bitsavers.trailing-edge.com/components/intel/MCS80/98-153B_Intel_8080_Microcomputer_Systems_Users_Manual_197509.pdf)
 - Don't remember where I downloaded the Space Invaders sounds
 - [Kold666's samples for Lunar Rescue](https://samples.mameworld.info) from MAMEWorld
+- Sokoban sound effects from Pixabay
+- First 8 Sokoban levels from the Microban level set, second 8 levels from the paper *Automatic Making of Sokoban Problems* (Murase, Matsubara & Hiraga)

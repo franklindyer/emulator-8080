@@ -158,8 +158,7 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
         if (cpu->flags.i) {
             op = &cpu->bus;
             cpu->flags.i = 0;
-        }
-        else {
+        } else {
             op = &cpu->memory[cpu->pc];
             cpu->pc++;
         }
@@ -1017,6 +1016,14 @@ void emulate_cpu8080(cpu8080* cpu, long bound) {
             case 0xec: // CPE D16
                 if (!(cpu->flags).p) { CALL(cpu) }
                 else cpu->pc += 2;
+                break;
+
+            case 0xee: // XRI D8
+                cpu->a = cpu->a ^ mem[pc+1];
+                SETZSP(cpu->flags,cpu->a);
+                (cpu->flags).c = 0;
+                (cpu->flags).ac = 0;
+                cpu->pc += 1;
                 break;
 
             case 0xef: // RST 5
