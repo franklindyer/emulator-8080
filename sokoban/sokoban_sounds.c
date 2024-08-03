@@ -6,6 +6,8 @@
 #define NOPE_SOUND 0
 #define PUSH_SOUND 1
 #define STEP_SOUND 2
+#define WIN_SOUND 3
+#define END_SOUNDS 7
 
 void play_sound(int sound_code) {
     switch(sound_code) {
@@ -17,6 +19,12 @@ void play_sound(int sound_code) {
             break;
         case STEP_SOUND:
             system("afplay ./sokoban/sounds/footsteps.m4a &");
+            break;
+        case WIN_SOUND:
+            system("afplay ./sokoban/sounds/youwin.mp3 &");
+            break;
+        case END_SOUNDS:
+            system("killall afplay &");
             break;
         default:
             break;

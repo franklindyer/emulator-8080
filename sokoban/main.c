@@ -32,6 +32,8 @@ void handle_sokoban_out(uint8_t port, uint8_t outbyte) {
         if (outbyte & 2) play_sound(0);         // NOPE
         else if (outbyte & 4) play_sound(1);    // CRATE PUSH
         else if (outbyte & 1) play_sound(2);    // WALKING
+        else if (outbyte & 8) play_sound(3);    // WIN LEVEL
+        else if (outbyte & 128) play_sound(7);  // STOP ALL SOUNDS
     }
 }
 
