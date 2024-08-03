@@ -20,16 +20,18 @@ uint8_t handle_sokoban_in(uint8_t port) {
             KEYS[SDLK_w] 
             | (KEYS[SDLK_s] << 1) 
             | (KEYS[SDLK_a] << 2) 
-            | (KEYS[SDLK_d] << 3)
-            | (KEYS[SDLK_r] << 7);
+            | (KEYS[SDLK_d] << 3);
         KEYS[SDLK_w] = 0;
         KEYS[SDLK_a] = 0;
         KEYS[SDLK_s] = 0;
         KEYS[SDLK_d] = 0;
-        KEYS[SDLK_r] = 0;
         return keymap;
     }
-    if (port == 1) return clk;
+    if (port == 1) {
+        uint8_t keymap = KEYS[SDLK_r];
+        KEYS[SDLK_r] = 0;
+        return keymap;
+    };
     return 0;
 }
 
